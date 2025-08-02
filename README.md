@@ -1,6 +1,6 @@
-# 🎓 Student Management System
+# 🎓 Student Management System (Currently working on this project)
 
-A full-stack web application to manage students, courses, fee payments, and attendance. Built with the MERN stack (MongoDB, Express.js, React.js, Node.js), with secure JWT-based authentication and a modern admin dashboard.
+A full-stack web application to manage students, courses, fee payments, and attendance. Built with the MERN stack (MongoDB, Express.js, React.js, Node.js), with secure JWT-based authentication and a modern admin dashboard. A parent login for parents to keep track of student information and check confirmation of fee receipts.
 
 ---
 
