@@ -23,17 +23,17 @@ const AdminSidebar = () => {
         Student MS
       </h2>
 
-      <NavLink to="/admin-dashboard" className={linkStyle}>
+      <NavLink to="/admin-dashboard" className={linkStyle} end>
         <FaTachometerAlt />
         <span>Dashboard</span>
       </NavLink>
 
-      <NavLink to="/admin-students" className={linkStyle}>
+      <NavLink to="/admin-dashboard/students" className={linkStyle}>
         <FaUserGraduate />
         <span>Students</span>
       </NavLink>
 
-      <NavLink to="/admin-courses" className={linkStyle}>
+      <NavLink to="/admin-dashboard/courses" className={linkStyle} end>
         <FaBook />
         <span>Courses</span>
       </NavLink>
