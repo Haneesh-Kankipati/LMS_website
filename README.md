@@ -4,7 +4,7 @@ A full-stack web application to manage students, courses, fee payments, and atte
 
 ---
 
-## 🚀 Features
+## Features
 
 - Admin Login / Parent Login / Authentication (JWT)
 - Add / View / Update / Delete Students (In Progress)
@@ -18,7 +18,7 @@ A full-stack web application to manage students, courses, fee payments, and atte
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 <img width="1919" height="994" alt="image" src="https://github.com/user-attachments/assets/b29b45f3-ed3f-4616-8f61-fba109882ed4" />  
 Admin Dashboard
 
@@ -27,8 +27,8 @@ List of Courses (options to add or edit course along with a search bar)
 
 
 
-## 🛠️ Tech Stack
-Frontend     React.js, Tailwind CSS, Axios
-Backend      Node.js, Express.js 
-Database     MongoDB + Mongoose  
-Auth         JWT (JSON Web Token) 
+##  Tech Stack
+Frontend     React.js, Tailwind CSS, Axios  
+Backend      Node.js, Express.js   
+Database     MongoDB + Mongoose    
+Auth         JWT (JSON Web Token)   
