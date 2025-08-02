@@ -28,7 +28,7 @@ List of Courses (options to add or edit course along with a search bar)
 
 
 ##  Tech Stack
-Frontend     React.js, Tailwind CSS, Axios  
-Backend      Node.js, Express.js   
-Database     MongoDB + Mongoose    
-Auth         JWT (JSON Web Token)   
+Frontend  React.js, Tailwind CSS, Axios  
+Backend   Node.js, Express.js   
+Database  MongoDB + Mongoose    
+Auth      JWT (JSON Web Token)   
