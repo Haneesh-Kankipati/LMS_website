@@ -2,12 +2,13 @@ import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const {login}=useAuth()
+  const {login,user}=useAuth()
   const navigate = useNavigate()
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,11 +20,6 @@ export default function Login() {
         if(response.data.success){
           login(response.data.user)
           localStorage.setItem("token",response.data.token)
-          if(response.data.user.role === "admin"){
-            navigate('/admin-dashboard')
-          }else {
-            navigate('/student-dashboard')
-          }
         }
     } catch (error) {
         if(error.response && !error.response.data.success){
@@ -34,6 +30,16 @@ export default function Login() {
     }
     // TODO: Add login logic here
   };
+
+  useEffect(() => {
+    if (!user) return
+
+    if (user.role === "admin") {
+      navigate("/admin-dashboard")
+    } else {
+      navigate("/student-dashboard")
+    }
+  }, [user, navigate])
 
   return (
      <div className="flex flex-col items-center h-screen justify-center bg-gradient-to-b from-blue-600 from-50% to-blue-200 to-50% space-y-6"
@@ -48,7 +54,7 @@ export default function Login() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

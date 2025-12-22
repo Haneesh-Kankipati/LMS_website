@@ -1,4 +1,13 @@
-# Logs
+# ===============================
+# ENVIRONMENT VARIABLES (CRITICAL)
+# ===============================
+.env
+.env.*
+!.env.example
+
+# ===============================
+# LOG FILES
+# ===============================
 logs
 *.log
 npm-debug.log*
@@ -7,18 +16,55 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# ===============================
+# DEPENDENCIES
+# ===============================
+node_modules/
+frontend/node_modules/
+server/node_modules/
+
+# ===============================
+# BUILD OUTPUTS
+# ===============================
 dist
 dist-ssr
-*.local
+build
+frontend/dist
+server/dist
 
-# Editor directories and files
+# ===============================
+# LOCAL / TEMP FILES
+# ===============================
+*.local
+*.tmp
+*.cache
+
+# ===============================
+# EDITOR / IDE FILES
+# ===============================
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# ===============================
+# OS FILES
+# ===============================
+Thumbs.db
+
+# ===============================
+# PYTHON / CONDA (you had this)
+# ===============================
+.conda/
+__pycache__/
+*.pyc
+
+# ===============================
+# PUBLIC UPLOADS (backend)
+# ===============================
+server/public/uploads/

@@ -13,7 +13,7 @@ const getCourses = async(req,res)=>{
         const courses= await Course.find()
         return res.status(200).json({success:true,courses})
     } catch (error) {
-        return res.status(500).josn({success:false,error:"get courses server error"})
+        return res.status(500).json({success:false,error:"get courses server error"})
     }
 }
 

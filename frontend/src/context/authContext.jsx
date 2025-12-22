@@ -33,8 +33,9 @@ const authContext = ({children}) => {
       }
       verifyUser()
     },[])
-    const login =()=>{
-      setUser(user)
+    const login =(userData)=>{
+      setUser(userData)
+      console.log("USER: ",{userData})
     }
     const logout=()=>{
       setUser(null)

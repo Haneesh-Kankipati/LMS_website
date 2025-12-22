@@ -9,7 +9,7 @@ import {
   FaCalendarAlt
 } from 'react-icons/fa'
 
-const AdminSidebar = () => {
+const StudentSidebar = () => {
   const linkStyle = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-md font-medium text-sm transition-all duration-200 ${
       isActive
@@ -23,27 +23,22 @@ const AdminSidebar = () => {
         Student MS
       </h2>
 
-      <NavLink to="/admin-dashboard" className={linkStyle} end>
+      <NavLink to="/student-dashboard" className={linkStyle} end>
         <FaTachometerAlt />
         <span>Dashboard</span>
       </NavLink>
 
-      <NavLink to="/admin-dashboard/students" className={linkStyle}>
+      <NavLink to="/student-dashboard/profile" className={linkStyle}>
         <FaUserGraduate />
-        <span>Students</span>
+        <span>My Profile</span>
       </NavLink>
 
-      <NavLink to="/admin-dashboard/courses" className={linkStyle} end>
-        <FaBook />
-        <span>Courses</span>
-      </NavLink>
-
-      <NavLink to="/admin-dashboard/feepayments" className={linkStyle}>
+      <NavLink to="/student-dashboard/feepayments" className={linkStyle}>
         <FaMoneyCheckAlt />
         <span>Fee Payments</span>
       </NavLink>
 
-      <NavLink to="/admin-dashboard" className={linkStyle}>
+      <NavLink to="/student-dashboard" className={linkStyle}>
         <FaCog />
         <span>Settings</span>
       </NavLink>
@@ -51,4 +46,4 @@ const AdminSidebar = () => {
   )
 }
 
-export default AdminSidebar
+export default StudentSidebar
