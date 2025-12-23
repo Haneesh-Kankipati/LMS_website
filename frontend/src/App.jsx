@@ -16,12 +16,13 @@ import AddPayment from "./components/FeePayments/AddPayment";
 import ViewPayment from "./components/FeePayments/ViewPayment";
 import Summary from "./components/StudentDashboard/Summary";
 import StudentProfile from "./components/StudentDashboard/StudentProfile";
+import StudentPayments from "./components/StudentDashboard/StudentPayments";
 function App() {
 
   return (
     <BrowserRouter>
   <Routes>
-    <Route path="/" element={<Navigate to="/admin-dashboard" />} />
+    <Route path="/" element={<Navigate to="/login" />} />
     <Route path="/login" element={<Login />} />
     <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/student-dashboard" element={<StudentDashboard />}>
           <Route index element={<Summary />} />
           <Route path="profile" element={<StudentProfile />} />
+          <Route path="feepayments" element={<StudentPayments />} />
         </Route>
       </Route>
     </Route>

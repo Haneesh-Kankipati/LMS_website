@@ -80,12 +80,15 @@ const getStudents=async(req,res)=>{
 }
 const getStudent = async (req, res) => {
     try {
+        let student;
         const { id } = req.params;
-        const student = await Student.findOne({std_id:id})
+        student = await Student.findOne({std_id:id})
             .populate('user_id', { password: 0 })
             .populate('std_course');
-        if (!student) {
-            return res.status(404).json({ success: false, error: "Student not found" });
+        if(!student){
+            student = await Student.findOne({user_id:id})
+            .populate('user_id', { password: 0 })
+            .populate('std_course');
         }
         return res.status(200).json({ success: true, student,user:student.user_id});
     } catch (error) {
