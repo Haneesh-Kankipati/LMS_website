@@ -37,6 +37,38 @@ export const addPayment = async (req, res) => {
     });
   }
 };
+export const getStudentPayments=async(req,res)=>{
+  try {
+    const{studentUserId}=req.params;
+    const student = await Student.findOne({ user_id: studentUserId });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // 2️⃣ Find all payments for that student
+    const payments = await FeePayment.find({ student: student._id })
+      .populate({
+        path: "student",
+        populate: {
+          path: "std_course",
+          select: "course_name"
+        }
+      })
+
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      payments,
+    });
+  } catch (error) {
+    return res.status(500).json({success:false,message:"Server error getting payments"})
+  }
+}
 export const getPayments=async(req,res)=>{
   try {
     const payments = await FeePayment.find()
