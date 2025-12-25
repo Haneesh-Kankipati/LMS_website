@@ -43,7 +43,7 @@ const AdminSidebar = () => {
         <span>Fee Payments</span>
       </NavLink>
 
-      <NavLink to="/admin-dashboard" className={linkStyle}>
+      <NavLink to="/admin-dashboard/settings" className={linkStyle}>
         <FaCog />
         <span>Settings</span>
       </NavLink>

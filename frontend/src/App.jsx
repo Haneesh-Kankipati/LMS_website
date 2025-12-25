@@ -17,6 +17,7 @@ import ViewPayment from "./components/FeePayments/ViewPayment";
 import Summary from "./components/StudentDashboard/Summary";
 import StudentProfile from "./components/StudentDashboard/StudentProfile";
 import StudentPayments from "./components/StudentDashboard/StudentPayments";
+import Settings from "./components/Dashboard/Settings";
 function App() {
 
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="student/:id" element={<ViewStudent />} />
           <Route path="feepayments" element={<AddPayment />} />
           <Route path="student/feepayment/:id" element={<ViewPayment />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Route>
 
@@ -47,6 +49,7 @@ function App() {
           <Route index element={<Summary />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="feepayments" element={<StudentPayments />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Route>
     </Route>

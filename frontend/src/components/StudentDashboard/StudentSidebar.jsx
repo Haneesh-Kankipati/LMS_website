@@ -38,7 +38,7 @@ const StudentSidebar = () => {
         <span>Fee Payments</span>
       </NavLink>
 
-      <NavLink to="/student-dashboard" className={linkStyle}>
+      <NavLink to="/student-dashboard/settings" className={linkStyle}>
         <FaCog />
         <span>Settings</span>
       </NavLink>
