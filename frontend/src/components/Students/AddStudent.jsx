@@ -64,7 +64,7 @@ const AddStudent = () => {
       if (error.response && error.response.data && error.response.data.error) {
         alert(error.response.data.error)
       } else {
-        alert("An error occurred")
+        alert(error.message)
       }
     }
   }
@@ -162,6 +162,9 @@ const AddStudent = () => {
             className="w-full border px-4 py-2 rounded text-lg"
             required
           >
+            <option value="" disabled>
+              Select Course
+            </option>
             {courses.map(course => (
               <option key={course._id} value={course._id}>{course.course_name}</option>
             ))}

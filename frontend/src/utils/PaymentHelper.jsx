@@ -126,14 +126,35 @@ export const fetchPayment=async(id)=>{
     return null;
   }
 }
-export const PaymentButtons = ({std_id, _id }) => {
+export const deletePayment=async(id,onPaymentDelete)=>{
+  try {
+    const response = await axios.delete(`http://localhost:3000/api/feepayment/payment/${id}`, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    if(response.data.success){
+      onPaymentDelete()
+    }
+    
+  } catch (error) {
+    if (error.response && !error.response.data.success) {
+      alert(error.response.data.error);
+    }
+  }
+}
+export const PaymentButtons = ({std_id, _id,onPaymentDelete }) => {
   //const navigate = useNavigate();
   const handleDelete=async()=>{
     const confirm = window.confirm("Do you want to delete?")
     try {
+      if(confirm){
+        await deletePayment(_id,onPaymentDelete)
+      }
       
     } catch (error) {
-      
+      console.error("Error deleting payment:", error);
+      alert("Failed to delete payment!");
     }
   } 
   const handleDownload=async()=>{

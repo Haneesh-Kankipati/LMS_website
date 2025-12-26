@@ -12,5 +12,13 @@ const studentSchema = new mongoose.Schema({
     createdAt:{type:Date,default:Date.now},
     updatedAt:{type:Date,default:Date.now}
 })
+studentSchema.pre("deleteOne",{document:true,query:false},async function (next) {
+    try {
+        
+        next()
+    } catch (error) {
+        next(error)
+    }
+})
 const Student = mongoose.model("Student",studentSchema)
 export default Student;

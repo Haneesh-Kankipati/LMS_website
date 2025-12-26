@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
 const upload=multer({storage:storage})
 
 const addStudent= async(req,res)=>{
+    let savedUser;
     try {
         const{
         std_name,
@@ -37,7 +38,7 @@ const addStudent= async(req,res)=>{
 
     const user= await User.findOne({email:ph_number})
     if(user){
-        return res.status(400).json({success:false,error:"User already exists"});
+        return res.status(400).json({success:false,error:`User already exists ${user.email}`});
     }
     
     const hashPassword = await bcrypt.hash(std_password,10)
@@ -58,16 +59,25 @@ const addStudent= async(req,res)=>{
         std_dob,
         std_course,
         std_gender,
-        fee_structure,
-        std_password
+        fee_structure
     })
 
     await newStudent.save()
     return res.status(200).json({success:true,message:"student created"})
         
     } catch (error) {
-        return res.status(500).json({success:false,message:"Server error adding student"})
+    console.error("ADD STUDENT ERROR 🔥", error);
+
+    if (savedUser) {
+        await User.findByIdAndDelete(savedUser._id);
     }
+
+    return res.status(500).json({
+        success: false,
+        error: error.message // 👈 SEND REAL ERROR
+    });
+}
+
     
 }
 const getStudents=async(req,res)=>{

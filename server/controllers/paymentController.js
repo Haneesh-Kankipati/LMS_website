@@ -117,3 +117,14 @@ export const getPayment = async (req, res) => {
     });
   }
 };
+
+export const deletePayment = async(req,res)=>{
+  try {
+        const { paymentId } = req.params;
+        const deletedPayment = await FeePayment.findByIdAndDelete({_id:paymentId});
+        
+        return res.status(200).json({ success: true, deletedPayment });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: "delete payment server error" });
+    }
+}

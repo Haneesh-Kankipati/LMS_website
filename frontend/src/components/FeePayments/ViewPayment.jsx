@@ -25,7 +25,7 @@ const ViewPayment = () => {
                   extra: payment.extra,
                   total:payment.total,
                   payDate:payment.payDate,
-                  action: (<PaymentButtons std_id={id}_id={payment._id} />)
+                  action: (<PaymentButtons std_id={id}_id={payment._id} onPaymentDelete={onPaymentDelete}/>)
                 }
               ));
                 setPayments(data);
@@ -34,6 +34,9 @@ const ViewPayment = () => {
     useEffect(()=>{
       loadPayments()
     },[])
+    const onPaymentDelete=()=>{
+      loadPayments()
+    }
   return (
     <>{paymentLoading?<div>Loading...</div>:
       <div>
