@@ -32,7 +32,7 @@ const StudentList = () => {
             parent_name: student.parent_name,
             std_dob: new Date(student.std_dob).toDateString(),
             profileImage: student.user_id?.profileImage || "",
-            action: (<StudentButtons _id={student.std_id} />)
+            action: (<StudentButtons _id={student.std_id} onStudentDelete={onStudentDelete} />)
           }
         ));
           setStudents(data);
@@ -69,10 +69,10 @@ const StudentList = () => {
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(blob, 'Student_List.xlsx');
   };
-  /*const onStudentDelete = (id) => {
+  const onStudentDelete = (id) => {
     setStudents(prev => prev.filter(student => student.std_id !== id));
     fetchStudents()
-  };*/
+  };
   return (
     <>
       {studentLoading ? (

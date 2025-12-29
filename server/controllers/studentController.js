@@ -184,9 +184,17 @@ const updateStudent = async (req, res) => {
 };
 const deleteStudent=async(req,res)=>{
     try {
-        
+        const { id } = req.params;
+        const deletedStudent = await Student.findOne({std_id:id});
+        if (!deletedStudent) {
+            return res.status(404).json({ success: false, error: "Student not found" });
+        }
+        await deletedStudent.deleteOne()
+        return res.status(200).json({ success: true, deletedStudent });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ success: false, error: "delete student server error" });
+        
     }
 }
 export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent}

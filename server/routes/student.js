@@ -8,7 +8,7 @@ router.get('/',authMiddleware,getStudents)
 router.post('/add',authMiddleware,upload.single('image'),addStudent)
 router.get('/:id', authMiddleware, getStudent)
 router.put('/:id', authMiddleware, upload.single('image'),updateStudent)
-router.delete('/:id',authMiddleware, deleteStudent)
+router.delete('/:id',authMiddleware, deleteStudent) 
 
 
 export default router

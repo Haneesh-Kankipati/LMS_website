@@ -7,6 +7,7 @@ const AddPayment = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
+  const [error,setError]=useState("")
   const [formData, setFormData] = useState({
   course: "",
   student: "",
@@ -55,9 +56,50 @@ const AddPayment = () => {
     //console.log("Student list received:", studentList); 
     setStudents(studentList || []);
   };
+  const validateForm = () => {
+  if (!formData.course) {
+    setError("Please select a course");
+    return false;
+  }
+
+  if (!formData.student) {
+    setError("Please select a student");
+    return false;
+  }
+
+  if (formData.fee === "" || Number(formData.fee) < 0) {
+    setError("Please enter a valid fee amount");
+    return false;
+  }
+
+  if (formData.discount === "" || Number(formData.discount) < 0) {
+    setError("Please enter a valid discount amount");
+    return false;
+  }
+
+  if (Number(formData.discount) > Number(formData.fee)+Number(formData.extra)) {
+    setError("Discount cannot be greater than fee+extra");
+    return false;
+  }
+
+  if (formData.extra === "" || Number(formData.extra) < 0) {
+    setError("Please enter a valid extra amount");
+    return false;
+  }
+
+  if (!formData.payDate) {
+    setError("Please select a payment date");
+    return false;
+  }
+
+  setError(""); // clear error if all valid
+  return true;
+};
+
   const handleSubmit = async(e) => {
     e.preventDefault();
     //console.log("Form submitted:", formData);
+    if(!validateForm()) return;
     try {
             const response = await axios.post('http://localhost:3000/api/feepayment/add',formData,{
                 headers:{
@@ -78,6 +120,11 @@ const AddPayment = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-3xl">
         <h2 className="text-2xl font-bold mb-6">Add New Payment</h2>
+        {error && (
+        <p className="text-red-600 mb-4 text-center font-semibold">
+          {error}
+        </p>
+      )}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Course */}

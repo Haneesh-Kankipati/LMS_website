@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 const AddStudent = () => {
   const navigate = useNavigate()
+  const [error,setError]=useState("")
   const [form, setForm] = useState({
     std_name: "",
     parent_name: "",
@@ -18,6 +19,37 @@ const AddStudent = () => {
     image: null
   })
   const [courses, setCourses] = useState([])
+  const validateForm = () => {
+    const {
+      std_name,
+      parent_name,
+      std_id,
+      ph_number,
+      std_dob,
+      std_gender,
+      std_course,
+      fee_structure,
+      std_password,
+      image
+    } = form;
+
+    if (
+      !std_name ||
+      !parent_name ||
+      !std_id ||
+      !ph_number ||
+      !std_dob ||
+      !std_gender ||
+      !std_course ||
+      !fee_structure ||
+      !std_password
+    ) {
+      setError("Please fill all the fields");
+      return false;
+    }
+    setError("");
+    return true;
+  };
 
   useEffect(() => {
     const getCourses = async () => {
@@ -37,6 +69,9 @@ const AddStudent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!validateForm()) return;
+
     const formDataObj = new FormData()
     formDataObj.append("std_name", form.std_name)
     formDataObj.append("parent_name", form.parent_name)
@@ -76,6 +111,12 @@ const AddStudent = () => {
   >
     <div className="w-full max-w-3xl bg-white rounded shadow p-8">
       <h2 className="text-2xl font-bold mb-8 text-left">Add New Student</h2>
+      {error && (
+        <p className="text-red-600 mb-4 text-center font-semibold">
+          {error}
+        </p>
+      )}
+
       <div className="flex gap-8 mb-6">
         <div className="w-1/2">
           <label className="block mb-2">Student Name</label>

@@ -51,7 +51,7 @@ export const columns =[
         name:"Action",
         selector:(row)=>row.action,
         ignoreRowClick: true,
-        button:"true",
+        //button:true,
         width: "300px"
     }
 ]
@@ -96,7 +96,7 @@ export const fetchStudentsByCourse = async (course_id) => {
   }
 };
 
-export const StudentButtons =({_id})=>{
+export const StudentButtons =({_id,onStudentDelete})=>{
     const navigate= useNavigate()
     const handleDelete=async (id)=>{
         const confirm = window.confirm("Do you want to delete?")
@@ -108,7 +108,7 @@ export const StudentButtons =({_id})=>{
                 }
                 });
             if(response.data.success){
-
+              onStudentDelete(id)
             } 
             }
         
