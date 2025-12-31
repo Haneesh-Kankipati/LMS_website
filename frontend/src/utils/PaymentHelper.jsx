@@ -6,7 +6,7 @@ export const columns = [
   {
     name: "S No",
     selector: row => row.sno,
-    width: "70px" // fixed small width
+    width: "60px" // fixed small width
   },
   {
     name: "Student",
@@ -24,7 +24,7 @@ export const columns = [
     name: "Fee",
     selector: row => row.fee,
     sortable: true,
-    width: "100px"
+    width: "80px"
   },
   {
     name: "Discount",
@@ -36,13 +36,13 @@ export const columns = [
     name: "Extra",
     selector: row => row.extra,
     sortable: true,
-    width: "100px"
+    width: "80px"
   },
   {
-    name: "Total Paid",
+    name: "Total",
     selector: row => row.total,
     sortable: true,
-    width: "120px"
+    width: "80px"
   },
   {
     name: "Pay Date",
@@ -58,11 +58,17 @@ export const columns = [
     width: "120px"
   },
   {
+    name: "Amount Paid",
+    selector: row => row.amountPaid,
+    sortable: true,
+    width: "120px"
+  },
+  {
     name: "Action",
     selector: row => row.action,
     ignoreRowClick: true,
     button: "true",
-    width: "180px"
+    width: "100px"
   }
 ];
 
@@ -157,80 +163,8 @@ export const PaymentButtons = ({std_id, _id,onPaymentDelete }) => {
       alert("Failed to delete payment!");
     }
   } 
-  const handleDownload=async()=>{
-    try {
-      const payment = await fetchPayment(_id);
-      if (!payment) {
-        alert("Payment details not found!");
-        return;
-      }
-      console.log(payment)
-      const studentName = payment.student?.user_id?.name || "N/A";
-    const courseName = payment.student?.std_course?.course_name || "N/A";
-    const payDate = new Date(payment.payDate).toLocaleDateString();
-
-    // Build the PDF content
-    const docDefinition = {
-      content: [
-        { text: "Fee Payment Receipt", style: "header", alignment: "center" },
-        { text: "WAVES - Preschool | Activities", style: "subheader", alignment: "center" },
-        { text: "Kranti Nagar,Bachupally", alignment: "center" },
-        { text: "Contact: +91 9849197635", alignment: "center", margin: [0, 0, 0, 15] },
-
-        { text: "Student Details", style: "sectionHeader" },
-        {
-          columns: [
-            { text: `Student Name: ${studentName}` },
-            { text: `Course: ${courseName}` },
-          ],
-        },
-        {
-          columns: [
-            { text: `Payment ID: ${payment._id}` },
-            { text: `Payment Date: ${payDate}` },
-          ],
-        },
-        { text: "\n" },
-
-        {
-          table: {
-            headerRows: 1,
-            widths: ["*", "auto"],
-            body: [
-              ["Particulars", "Amount (₹)"],
-              ["Course Fee", payment.fee || 0],
-              ["Discount", payment.discount || 0],
-              ["Extra Charges", payment.extra || 0],
-              ["Total Paid", { text: payment.total || 0, bold: true }],
-            ],
-          },
-          layout: "lightHorizontalLines",
-        },
-
-        { text: "\n" },
-        { text: "Authorized Signature: ___________________", alignment: "right", margin: [0, 30, 0, 0] },
-      ],
-
-      styles: {
-        header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-        subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
-        sectionHeader: { fontSize: 13, bold: true, margin: [0, 10, 0, 5] },
-      },
-    };
-
-    pdfMake.createPdf(docDefinition).download(`Fee_Receipt_${studentName}.pdf`);
-      
-
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Failed to generate receipt!");
-    }
-  }
   return (
-    <div className="flex space-x-3">
-      <button className="px-3 py-1 bg-blue-600 text-white rounded-full"
-              onClick={handleDownload}
-      >Download</button> 
+    <div className="flex space-x-3"> 
       <button className="px-3 py-1 bg-red-600 text-white rounded-full"
               onClick={handleDelete}
       >Delete</button> 
@@ -238,80 +172,10 @@ export const PaymentButtons = ({std_id, _id,onPaymentDelete }) => {
   );
 };
 export const StudentPaymentButtons = ({_id }) => {
-  const handleDownload=async()=>{
-    try {
-      const payment = await fetchPayment(_id);
-      if (!payment) {
-        alert("Payment details not found!");
-        return;
-      }
-      console.log(payment)
-      const studentName = payment.student?.user_id?.name || "N/A";
-    const courseName = payment.student?.std_course?.course_name || "N/A";
-    const payDate = new Date(payment.payDate).toLocaleDateString();
 
-    // Build the PDF content
-    const docDefinition = {
-      content: [
-        { text: "Fee Payment Receipt", style: "header", alignment: "center" },
-        { text: "WAVES - Preschool | Activities", style: "subheader", alignment: "center" },
-        { text: "Kranti Nagar,Bachupally", alignment: "center" },
-        { text: "Contact: +91 9849197635", alignment: "center", margin: [0, 0, 0, 15] },
-
-        { text: "Student Details", style: "sectionHeader" },
-        {
-          columns: [
-            { text: `Student Name: ${studentName}` },
-            { text: `Course: ${courseName}` },
-          ],
-        },
-        {
-          columns: [
-            { text: `Payment ID: ${payment._id}` },
-            { text: `Payment Date: ${payDate}` },
-          ],
-        },
-        { text: "\n" },
-
-        {
-          table: {
-            headerRows: 1,
-            widths: ["*", "auto"],
-            body: [
-              ["Particulars", "Amount (₹)"],
-              ["Course Fee", payment.fee || 0],
-              ["Discount", payment.discount || 0],
-              ["Extra Charges", payment.extra || 0],
-              ["Total Paid", { text: payment.total || 0, bold: true }],
-            ],
-          },
-          layout: "lightHorizontalLines",
-        },
-
-        { text: "\n" },
-        { text: "Authorized Signature: ___________________", alignment: "right", margin: [0, 30, 0, 0] },
-      ],
-
-      styles: {
-        header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-        subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
-        sectionHeader: { fontSize: 13, bold: true, margin: [0, 10, 0, 5] },
-      },
-    };
-
-    pdfMake.createPdf(docDefinition).download(`Fee_Receipt_${studentName}.pdf`);
-      
-
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Failed to generate receipt!");
-    }
-  }
   return (
     <div className="flex space-x-3">
-      <button className="px-3 py-1 bg-blue-600 text-white rounded-full"
-              onClick={handleDownload}
-      >Download</button>
+      N/A
     </div>
   );
 };

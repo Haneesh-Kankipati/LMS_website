@@ -10,7 +10,6 @@ const studentSchema = new mongoose.Schema({
     std_dob:{type:Date,required:true},
     std_course:{type:mongoose.Schema.Types.ObjectId,ref:"Course",required:true},
     std_gender:{type:String,required:true},
-    fee_structure:{type:String,required:true},
     createdAt:{type:Date,default:Date.now},
     updatedAt:{type:Date,default:Date.now}
 })

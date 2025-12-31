@@ -14,7 +14,6 @@ const AddStudent = () => {
     std_dob: "",
     std_gender: "",
     std_course: "",
-    fee_structure: "",
     std_password: "",
     image: null
   })
@@ -28,7 +27,6 @@ const AddStudent = () => {
       std_dob,
       std_gender,
       std_course,
-      fee_structure,
       std_password,
       image
     } = form;
@@ -41,7 +39,6 @@ const AddStudent = () => {
       !std_dob ||
       !std_gender ||
       !std_course ||
-      !fee_structure ||
       !std_password
     ) {
       setError("Please fill all the fields");
@@ -80,7 +77,6 @@ const AddStudent = () => {
     formDataObj.append("std_dob", form.std_dob)
     formDataObj.append("std_gender", form.std_gender)
     formDataObj.append("std_course", form.std_course)
-    formDataObj.append("fee_structure", form.fee_structure)
     formDataObj.append("std_password", form.std_password)
     if (form.image) {
       formDataObj.append("image", form.image)
@@ -211,17 +207,7 @@ const AddStudent = () => {
             ))}
           </select>
         </div>
-        <div className="w-1/2">
-          <label className="block mb-2">Fee Structure</label>
-          <input
-            type="text"
-            name="fee_structure"
-            value={form.fee_structure}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded text-lg"
-            required
-          />
-        </div>
+
       </div>
       <div className="flex gap-8 mb-6">
         <div className="w-1/2">

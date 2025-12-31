@@ -16,6 +16,7 @@ const AddPayment = () => {
   extra: "",
   total: "",
   payDate: "",
+  amountPaid:""
   });
 
   const handleChange = (e) => {
@@ -91,7 +92,9 @@ const AddPayment = () => {
     setError("Please select a payment date");
     return false;
   }
-
+  if(!formData.amountPaid){
+    setError("Please eneter a valid amount paid")
+  }
   setError(""); // clear error if all valid
   return true;
 };
@@ -225,7 +228,18 @@ const AddPayment = () => {
               className="w-full border rounded-lg p-2"
             />
           </div>
-
+          {/* Amount Paid */}
+          <div>
+            <label className="block mb-1 font-medium">Amount Paid</label>
+            <input
+              type="number"
+              name="amountPaid"
+              placeholder="Amount Paid"
+              value={formData.amountPaid}
+              onChange={handleChange}
+              className="w-full border rounded-lg p-2"
+            />
+          </div>
           {/* Submit Button */}
           <div className="col-span-1 md:col-span-2">
             <button

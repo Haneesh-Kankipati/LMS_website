@@ -10,7 +10,8 @@ export const addPayment = async (req, res) => {
       discount,
       extra,
       total,
-      payDate
+      payDate,
+      amountPaid
     } = req.body;
 
     // Validate required fields
@@ -24,7 +25,8 @@ export const addPayment = async (req, res) => {
       discount,
       extra,
       total, // only if in schema
-      payDate
+      payDate,
+      amountPaid
     });
 
     await newPayment.save();

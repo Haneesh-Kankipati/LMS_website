@@ -13,7 +13,6 @@ const EditStudent = () => {
         std_dob: "",
         std_gender: "",
         std_course: "",
-        fee_structure: "",
         std_password: "",
         image: null
     })
@@ -190,17 +189,6 @@ const EditStudent = () => {
                                         <option key={course._id} value={course._id}>{course.course_name}</option>
                                     ))}
                                 </select>
-                            </div>
-                            <div className="w-1/2">
-                                <label className="block mb-2">Fee Structure</label>
-                                <input
-                                    type="text"
-                                    name="fee_structure"
-                                    value={form.fee_structure}
-                                    onChange={handleChange}
-                                    className="w-full border px-4 py-2 rounded text-lg"
-                                    required
-                                />
                             </div>
                         </div>
                         <div className="flex gap-8 mb-6">

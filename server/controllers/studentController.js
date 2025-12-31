@@ -27,7 +27,6 @@ const addStudent= async(req,res)=>{
         std_dob,
         std_gender,
         std_course,
-        fee_structure,
         std_password,
     } = req.body;
     
@@ -58,8 +57,7 @@ const addStudent= async(req,res)=>{
         parent_name,
         std_dob,
         std_course,
-        std_gender,
-        fee_structure
+        std_gender
     })
 
     await newStudent.save()
@@ -116,7 +114,6 @@ const updateStudent = async (req, res) => {
             std_dob,
             std_gender,
             std_course,
-            fee_structure,
             std_password
         } = req.body;
 
@@ -170,8 +167,7 @@ const updateStudent = async (req, res) => {
                 ph_number,
                 std_dob,
                 std_gender,
-                std_course,
-                fee_structure
+                std_course
             },
             { new: true }
         );

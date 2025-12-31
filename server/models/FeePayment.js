@@ -6,7 +6,8 @@ const feePaymentSchema = new mongoose.Schema({
     discount:{type:Number,required:true},
     extra:{type:Number,required:true},
     total:{type:Number,required:true},
-    payDate:{type:Date,required:true}
+    payDate:{type:Date,required:true},
+    amountPaid:{type:Number,required:true}
 })
 const feePayment = mongoose.model("FeePayment",feePaymentSchema)
 export default feePayment;
