@@ -6,7 +6,8 @@ import {
   FaBook,
   FaMoneyCheckAlt,
   FaCog,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaImage
 } from 'react-icons/fa'
 
 const AdminSidebar = () => {
@@ -26,6 +27,11 @@ const AdminSidebar = () => {
       <NavLink to="/admin-dashboard" className={linkStyle} end>
         <FaTachometerAlt />
         <span>Dashboard</span>
+      </NavLink>
+
+      <NavLink to="/admin-dashboard/gallery" className={linkStyle}>
+        <FaImage />
+        <span>Gallery</span>
       </NavLink>
 
       <NavLink to="/admin-dashboard/students" className={linkStyle}>

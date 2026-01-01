@@ -18,6 +18,7 @@ import Summary from "./components/StudentDashboard/Summary";
 import StudentProfile from "./components/StudentDashboard/StudentProfile";
 import StudentPayments from "./components/StudentDashboard/StudentPayments";
 import Settings from "./components/Dashboard/Settings";
+import Gallery from "./components/Dashboard/Gallery";
 function App() {
 
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="feepayments" element={<AddPayment />} />
           <Route path="student/feepayment/:id" element={<ViewPayment />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="gallery" element={<Gallery />} />
         </Route>
       </Route>
 

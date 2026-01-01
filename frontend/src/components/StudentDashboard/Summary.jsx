@@ -1,11 +1,13 @@
 import React from 'react'
 import { FaUser } from 'react-icons/fa'
 import { useAuth } from '../../context/authContext'
+import Gallery from '../Dashboard/Gallery'
 
 const Summary = () => {
     const {user}=useAuth()
   return (
-    <div className='rounded flex bg-white'>
+    <div>
+      <div className='rounded flex bg-white'>
         <div className={`text-3xl flex justify-center items-center bg-blue-600 text-white px-4`}>
             <FaUser />
         </div>
@@ -13,7 +15,13 @@ const Summary = () => {
             <p className='text-lg font-semibold'>Welcome Back</p>
             <p className='text-xl font-bold'>{user.name}</p>
         </div>
+      </div>
+      <div>
+        <Gallery />
+        
+      </div>
     </div>
+    
   )
 }
 
