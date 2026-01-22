@@ -1,7 +1,10 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Ensure gallery folder exists
 const galleryPath = "public/gallery";
 if (!fs.existsSync(galleryPath)) {
@@ -95,16 +98,16 @@ export const deleteGalleryImage = async (req, res) => {
     const { filename } = req.params;
 
     const filePath = path.join(
-      process.cwd(),
-      "public",
-      "gallery",
+      __dirname,
+      "../public/gallery",
       filename
     );
 
     if (!fs.existsSync(filePath)) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Image not found" });
+      return res.status(404).json({
+        success: false,
+        error: "Image not found",
+      });
     }
 
     fs.unlinkSync(filePath);
@@ -114,11 +117,13 @@ export const deleteGalleryImage = async (req, res) => {
       message: "Image deleted successfully",
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       error: "Failed to delete image",
     });
   }
 };
+
 
 export default upload;

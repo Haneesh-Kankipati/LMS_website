@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaDownload } from "react-icons/fa";
 import { useAuth } from "../../context/authContext";
 
 const Gallery = () => {
@@ -86,6 +86,60 @@ const Gallery = () => {
     }
   };
 
+  /* =========================
+     Download Image (All Users)
+  ========================= */
+  const downloadImage = async (url) => {
+    try {
+      const res = await axios.get(`http://localhost:3000${url}`, {
+        responseType: "blob",
+      });
+
+      const blob = res.data;
+      const blobUrl = URL.createObjectURL(blob);
+      const filename = url.split("/").pop();
+
+      const newWindow = window.open("", "_blank");
+      if (!newWindow) {
+        alert("Popup blocked. Please allow popups for this site to download the image.");
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+
+      const safeBlobUrl = JSON.stringify(blobUrl);
+      const safeFilename = JSON.stringify(filename);
+
+      const html = `<!doctype html>
+      <html>
+      <head><meta charset="utf-8"><title>Download ${filename}</title></head>
+      <body style="margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;color:#fff;">
+        <img src=${safeBlobUrl} style="max-width:100%;height:auto;" />
+        <script>
+          (function(){
+            try {
+              var a = document.createElement('a');
+              a.href = ${safeBlobUrl};
+              a.download = ${safeFilename};
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            } catch(e) { console.error(e); }
+          })();
+        </script>
+      </body>
+      </html>`;
+
+      newWindow.document.write(html);
+      newWindow.document.close();
+
+      // Revoke the object URL after some time to free memory
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (err) {
+      console.error(err);
+      alert("Download failed");
+    }
+  };
+
   useEffect(() => {
     getImages();
   }, []);
@@ -117,6 +171,15 @@ const Gallery = () => {
                     className="w-full h-auto object-contain"
                     loading="lazy"
                   />
+
+                  {/* Download Button - available to all users */}
+                  <button
+                    onClick={() => downloadImage(img.url)}
+                    className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    title="Download image"
+                  >
+                    <FaDownload size={14} />
+                  </button>
 
                   {/* Admin Delete Button */}
                   {isAdmin && (

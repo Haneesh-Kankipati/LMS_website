@@ -4,6 +4,11 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt"
 import path from "path";
 import mongoose from "mongoose";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
     destination:(req,file,cb)=>{
@@ -87,22 +92,42 @@ const getStudents=async(req,res)=>{
     }
 }
 const getStudent = async (req, res) => {
-    try {
-        let student;
-        const { id } = req.params;
-        student = await Student.findOne({std_id:id})
-            .populate('user_id', { password: 0 })
-            .populate('std_course');
-        if(!student){
-            student = await Student.findOne({user_id:id})
-            .populate('user_id', { password: 0 })
-            .populate('std_course');
-        }
-        return res.status(200).json({ success: true, student,user:student.user_id});
-    } catch (error) {
-        return res.status(500).json({ success: false, error: "get student server error" });
+  try {
+    const { id } = req.params;
+
+    let student = await Student.findOne({ std_id: id })
+      .populate("user_id", { password: 0 })
+      .populate("std_course");
+
+    if (!student) {
+      student = await Student.findOne({ user_id: id })
+        .populate("user_id", { password: 0 })
+        .populate("std_course");
     }
-}
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Student not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      student: {
+        ...student._doc,
+        profileImage: student.user_id?.profileImage || null,
+      },
+      user: student.user_id,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, error: "get student server error" });
+  }
+};
+
+
 const updateStudent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -178,19 +203,49 @@ const updateStudent = async (req, res) => {
         return res.status(500).json({ success: false, error: "edit student server error" });
     }
 };
-const deleteStudent=async(req,res)=>{
-    try {
-        const { id } = req.params;
-        const deletedStudent = await Student.findOne({std_id:id});
-        if (!deletedStudent) {
-            return res.status(404).json({ success: false, error: "Student not found" });
-        }
-        await deletedStudent.deleteOne()
-        return res.status(200).json({ success: true, deletedStudent });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ success: false, error: "delete student server error" });
-        
+const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find student
+    const student = await Student.findOne({ std_id: id });
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Student not found" });
     }
-}
+
+    // Find associated user
+    const user = await User.findById(student.user_id);
+
+    // Delete profile image if exists
+    if (user?.profileImage) {
+      // uploaded files are stored in server/public/uploads and only filename is saved
+      const imagePath = path.join(__dirname, "..", "public", "uploads", user.profileImage);
+
+      if (fs.existsSync(imagePath)) {
+        try {
+          fs.unlinkSync(imagePath);
+        } catch (err) {
+          console.error("Failed to delete profile image:", err);
+        }
+      }
+    }
+
+    // Delete student
+    await student.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student and profile image deleted successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      error: "delete student server error",
+    });
+  }
+};
 export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent}

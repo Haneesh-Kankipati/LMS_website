@@ -22,6 +22,7 @@ lerna-debug.log*
 node_modules/
 frontend/node_modules/
 server/node_modules/
+server/public/
 
 # ===============================
 # BUILD OUTPUTS
@@ -68,3 +69,6 @@ __pycache__/
 # PUBLIC UPLOADS (backend)
 # ===============================
 server/public/uploads/
+server/public/gallery/
+server/public/*
+!server/public/.gitkeep
