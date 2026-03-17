@@ -248,4 +248,35 @@ const deleteStudent = async (req, res) => {
     });
   }
 };
-export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent}
+
+const getStudentByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const student = await Student.findOne({ user_id: userId })
+      .populate("user_id", { password: 0 })
+      .populate("std_course");
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Student not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      student: {
+        ...student._doc,
+        profileImage: student.user_id?.profileImage || null,
+      },
+      user: student.user_id,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, error: "get student by user id server error" });
+  }
+};
+
+export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent,getStudentByUserId}

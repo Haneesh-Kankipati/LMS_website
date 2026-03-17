@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import axios from "axios";
 
 import {
   fetchStructuresByStudent,
@@ -20,11 +21,12 @@ const StudentPayments = () => {
   const [structures, setStructures] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [studentId, setStudentId] = useState([]);
 
   /* ---------------- RECEIPT GENERATION (PER STRUCTURE) ---------------- */
   const generateReceiptForStructure = async (structureId) => {
     try {
-      const payments = await fetchPaymentsByStudent(user._id);
+      const payments = await fetchPaymentsByStudent(studentId);
 
       const paymentsForStructure = (payments || []).filter(
         (p) =>
@@ -171,28 +173,40 @@ const StudentPayments = () => {
   const loadStructures = async () => {
     setLoading(true);
     try {
-      const structs = await fetchStructuresByStudent(user._id);
-      setStructures(structs || []);
+      // First, fetch the student object using the user ID
+      const studentResponse = await axios.get(`http://localhost:3000/api/student/user/${user._id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
 
-      let sno = 1;
+      if (studentResponse.data.success && studentResponse.data.student) {
+        const student = studentResponse.data.student;
+        setStudentId(student.std_id);
 
-      const tableRows = (structs || []).map((s) => ({
-        _id: s._id,
-        sno: sno++,
-        student: s.student?.std_name || "",
-        course: s.student?.std_course?.course_name || "",
-        fee: s.fee,
-        discount: s.discount,
-        extra: s.extra,
-        total: s.total,
-        action: (
-          <StudentStructureButtons
-            onDownload={() => generateReceiptForStructure(s._id)}
-          />
-        ),
-      }));
+        // Now fetch structures using the student's std_id
+        const structs = await fetchStructuresByStudent(student.std_id);
+        setStructures(structs || []);
 
-      setRows(tableRows);
+        let sno = 1;
+
+        const tableRows = (structs || []).map((s) => ({
+          _id: s._id,
+          sno: sno++,
+          year: s.year,
+          student: s.student?.std_name || "",
+          course: s.student?.std_course?.course_name || "",
+          fee: s.fee,
+          discount: s.discount,
+          extra: s.extra,
+          total: s.total,
+          action: (
+            <StudentStructureButtons
+              onDownload={() => generateReceiptForStructure(s._id)}
+            />
+          ),
+        }));
+
+        setRows(tableRows);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -209,7 +223,7 @@ const StudentPayments = () => {
     const [payments, setPayments] = useState([]);
 
     const load = async () => {
-      const all = await fetchPaymentsByStudent(user._id);
+      const all = await fetchPaymentsByStudent(studentId);
       const filtered = (all || []).filter(
         (p) =>
           p.feeStructure &&
@@ -219,30 +233,32 @@ const StudentPayments = () => {
     };
 
     useEffect(() => {
-      load();
-    }, []);
+      if (studentId) {
+        load();
+      }
+    }, [studentId]);
 
     return (
       <div className="p-3 bg-gray-50">
         {payments.length === 0 ? (
           <div>No payments</div>
         ) : (
-          <table className="w-full">
+          <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr>
-                <th>S.No</th>
-                <th>Date</th>
-                <th>Amount</th>
+              <tr className="bg-white">
+                <th className="p-1">S.No</th>
+                <th className="p-1">Date</th>
+                <th className="p-1">Amount</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((p, i) => (
-                <tr key={p._id}>
-                  <td>{i + 1}</td>
-                  <td>
+                <tr key={p._id} className="border-t">
+                  <td className="p-1">{i + 1}</td>
+                  <td className="p-1">
                     {new Date(p.payDate).toLocaleDateString()}
                   </td>
-                  <td>₹ {p.amountPaid}</td>
+                  <td className="p-1">₹ {p.amountPaid}</td>
                 </tr>
               ))}
             </tbody>
