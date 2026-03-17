@@ -11,12 +11,11 @@ const courseSchema = new mongoose.Schema({
 })
 courseSchema.pre("deleteOne",{document:true,query:false},async function (next) {
     try {
-        const students=await Student.find({std_course:this._id})
-        const stdIds=students.map(std=>std._id)
-        const userIds=students.map(std=>std.user_id)
-        await Student.deleteMany({std_course:this._id})
-        await feePayment.deleteMany({student:{$in:stdIds}})
-        await User.deleteMany({_id:{$in:userIds}})
+        const students = await Student.find({ std_course: this._id });
+        // Call document deleteOne on each student so their pre('deleteOne') hook runs
+        for (const std of students) {
+            await std.deleteOne();
+        }
         next()
     } catch (error) {
         next(error)

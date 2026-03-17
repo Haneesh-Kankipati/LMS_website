@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import feePayment from "./FeePayment.js";
 import User from "./User.js";
+import feeStructure from "./FeeStructure.js";
 
 const studentSchema = new mongoose.Schema({
     user_id:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
@@ -15,8 +15,15 @@ const studentSchema = new mongoose.Schema({
 })
 studentSchema.pre("deleteOne",{document:true,query:false},async function (next) {
     try {
-        await feePayment.deleteMany({student:this._id})
-        await User.deleteOne({_id:this.user_id})
+        // Find all fee structures for this student and call document.deleteOne()
+        // so any FeeStructure pre-delete hooks run.
+        const structures = await feeStructure.find({ student: this._id });
+        for (const s of structures) {
+            await s.deleteOne();
+        }
+
+        // Delete associated user
+        await User.deleteOne({ _id: this.user_id });
         next()
     } catch (error) {
         next(error)

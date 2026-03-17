@@ -7,6 +7,7 @@ import feePaymentRouter from "./routes/feePayment.js"
 import settingsRouter from "./routes/settings.js"
 import dashboardRouter from "./routes/dashboard.js"
 import galleryRouter from "./routes/gallery.js"
+import feeStructureRouter from "./routes/feeStructure.js"
 import dotenv from "dotenv"
 import connectToDatabase from './db/db.js'
 import path from "path";
@@ -37,6 +38,7 @@ app.use('/api/feepayment',feePaymentRouter)
 app.use('/api/settings',settingsRouter)
 app.use('/api/dashboard',dashboardRouter)
 app.use('/api/gallery',galleryRouter)
+app.use('/api/feestructure',feeStructureRouter)
 app.listen(process.env.PORT,()=>{
     console.log(`Server running on port ${process.env.PORT}`)
 })

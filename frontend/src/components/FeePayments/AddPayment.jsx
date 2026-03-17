@@ -1,256 +1,182 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCourses ,fetchStudentsByCourse} from '../../utils/StudentHelper';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { addPaymentForStructure, fetchStructuresByStudent, fetchPaymentsByStudent } from '../../utils/PaymentHelper';
 
 const AddPayment = () => {
+  const { id: studentId, structureId } = useParams();
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [error,setError]=useState("")
+  const [loading, setLoading] = useState(false);
+  const [structure, setStructure] = useState(null);
+  const [totalPaid, setTotalPaid] = useState(0);
+  const [balance, setBalance] = useState(0);
   const [formData, setFormData] = useState({
-  course: "",
-  student: "",
-  fee: "",
-  discount: "",
-  extra: "",
-  total: "",
-  payDate: "",
-  amountPaid:""
+    payDate: new Date().toISOString().split('T')[0],
+    amountPaid: '',
   });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Load structure details and calculate balance
+    const loadStructure = async () => {
+      try {
+        setLoading(true);
+        const structures = await fetchStructuresByStudent(studentId);
+        const found = structures.find(s => s._id === structureId);
+        if (found) {
+          setStructure(found);
+          
+          // Fetch all payments for this student and calculate total paid
+          const allPayments = await fetchPaymentsByStudent(studentId);
+          const paymentsForStructure = (allPayments || []).filter(
+            (p) => p.feeStructure && String(p.feeStructure._id) === String(structureId)
+          );
+          
+          const sum = paymentsForStructure.reduce((acc, p) => acc + (Number(p.amountPaid) || 0), 0);
+          setTotalPaid(sum);
+          setBalance(found.total - sum);
+        } else {
+          setError('Structure not found');
+        }
+      } catch (err) {
+        console.error('Error loading structure:', err);
+        setError('Failed to load structure details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (structureId && studentId) {
+      loadStructure();
+    }
+  }, [structureId, studentId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-    let updated = { ...prev, [name]: value };
-
-    // Auto-calculate total when fee, discount, or extra changes
-    if (["fee", "discount", "extra"].includes(name)) {
-      const fee = parseFloat(updated.fee) || 0;
-      const discount = parseFloat(updated.discount) || 0;
-      const extra = parseFloat(updated.extra) || 0;
-      updated.total = fee - discount + extra;
-    }
-
-    return updated;
-  });
-
-  if (name === "course") {
-    setFormData((prev) => ({ ...prev, student: "" }));
-    loadStudents(value);
-  }
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    setError('');
   };
 
-  useEffect(() => {
-    const getCourses = async () => {
-      const courseList = await fetchCourses();
-      setCourses(courseList || []);
-    };
-    getCourses();
-  }, []);
-  const loadStudents = async (courseId) => {
-    if (!courseId) {
-      setStudents([]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.payDate || !formData.amountPaid) {
+      setError('Please fill all fields');
       return;
     }
-    const studentList = await fetchStudentsByCourse(courseId);
-    //console.log("Student list received:", studentList); 
-    setStudents(studentList || []);
-  };
-  const validateForm = () => {
-  if (!formData.course) {
-    setError("Please select a course");
-    return false;
-  }
 
-  if (!formData.student) {
-    setError("Please select a student");
-    return false;
-  }
+    if (isNaN(formData.amountPaid) || Number(formData.amountPaid) <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
 
-  if (formData.fee === "" || Number(formData.fee) < 0) {
-    setError("Please enter a valid fee amount");
-    return false;
-  }
+    const amount = Number(formData.amountPaid);
+    if (amount > balance) {
+      setError(`Amount cannot exceed remaining balance of ₹ ${balance.toFixed(2)}`);
+      return;
+    }
 
-  if (formData.discount === "" || Number(formData.discount) < 0) {
-    setError("Please enter a valid discount amount");
-    return false;
-  }
-
-  if (Number(formData.discount) > Number(formData.fee)+Number(formData.extra)) {
-    setError("Discount cannot be greater than fee+extra");
-    return false;
-  }
-
-  if (formData.extra === "" || Number(formData.extra) < 0) {
-    setError("Please enter a valid extra amount");
-    return false;
-  }
-
-  if (!formData.payDate) {
-    setError("Please select a payment date");
-    return false;
-  }
-  if(!formData.amountPaid){
-    setError("Please eneter a valid amount paid")
-  }
-  setError(""); // clear error if all valid
-  return true;
-};
-
-  const handleSubmit = async(e) => {
-    e.preventDefault();
-    //console.log("Form submitted:", formData);
-    if(!validateForm()) return;
     try {
-            const response = await axios.post('http://localhost:3000/api/feepayment/add',formData,{
-                headers:{
-                    "Authorization" : `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-            if(response.data.success){
-                navigate("/admin-dashboard/students")
-            }
-        } catch (error) {
-            if(error.response && !error.response.data.success){
-                alert(error.response.data.error)
-            } 
-        }
+      setLoading(true);
+      await addPaymentForStructure(structureId, formData.payDate, amount);
+      
+      // Navigate back to ViewPayment page for this student
+      navigate(`/admin-dashboard/student/feepayment/${studentId}`);
+    } catch (err) {
+      console.error('Error adding payment:', err);
+      setError(err.response?.data?.error || 'Failed to add payment');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleCancel = () => {
+    navigate(`/admin-dashboard/student/feepayment/${studentId}`);
+  };
+
+  if (loading && !structure) {
+    return (
+      <div className="p-4">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-3xl">
-        <h2 className="text-2xl font-bold mb-6">Add New Payment</h2>
-        {error && (
-        <p className="text-red-600 mb-4 text-center font-semibold">
-          {error}
-        </p>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Add Payment</h1>
+      
+      {structure && (
+        <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+          <p className="mb-2"><strong>Student:</strong> {structure.student?.std_name || 'N/A'}</p>
+          <p className="mb-2"><strong>Course:</strong> {structure.student?.std_course?.course_name || 'N/A'}</p>
+          <p className="mb-2"><strong>Total Fee:</strong> ₹ {structure.total || 'N/A'}</p>
+          <p className="mb-2"><strong>Amount Already Paid:</strong> ₹ {totalPaid.toFixed(2)}</p>
+          <p className={`font-semibold ${balance <= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+            <strong>Remaining Balance:</strong> ₹ {balance.toFixed(2)}
+          </p>
+          {balance <= 0 && <p className="text-green-600 text-sm mt-1">✓ All fees have been paid</p>}
+        </div>
       )}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Course */}
-          <div>
-            <label className="block mb-1 font-medium">Course</label>
-            <select
-              name="course"
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            >
-              <option value="">Select Course</option>
-              {courses.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.course_name}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          {/* Student */}
-          <div>
-            <label className="block mb-1 font-medium">Student</label>
-            <select
-              name="student"
-              value={formData.student}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            >
-              <option value="">Select Student</option>
-              {students.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.std_name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
-          {/* Fee */}
-          <div>
-            <label className="block mb-1 font-medium">Fee</label>
-            <input
-              type="number"
-              name="fee"
-              placeholder="Enter Fee"
-              value={formData.fee}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block text-gray-700 font-semibold mb-2">Payment Date</label>
+          <input
+            type="date"
+            name="payDate"
+            value={formData.payDate}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
 
-          {/* Discount */}
-          <div>
-            <label className="block mb-1 font-medium">Discount</label>
-            <input
-              type="number"
-              name="discount"
-              placeholder="Enter Discount"
-              value={formData.discount}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
+        <div className="mb-6">
+          <label className="block text-gray-700 font-semibold mb-2">Amount Paid (₹)</label>
+          <input
+            type="number"
+            name="amountPaid"
+            value={formData.amountPaid}
+            onChange={handleChange}
+            placeholder="Enter amount"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            step="0.01"
+            min="0"
+            max={balance}
+            required
+          />
+          {balance > 0 && (
+            <p className="text-sm text-gray-600 mt-1">Maximum amount: ₹ {balance.toFixed(2)}</p>
+          )}
+        </div>
 
-          {/* Extra */}
-          <div>
-            <label className="block mb-1 font-medium">Extra Charges</label>
-            <input
-              type="number"
-              name="extra"
-              placeholder="Extra Charges"
-              value={formData.extra}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-
-          {/* Total */}
-          <div>
-            <label className="block mb-1 font-medium bg-grey-100">Total</label>
-            <input
-              type="number"
-              name="total"
-              placeholder="Total Amount"
-              value={formData.total}
-              readOnly
-              className="w-full border rounded-lg p-2 bg-grey-100 cursor-not-allowed"
-            />
-          </div>
-
-          {/* Pay Date */}
-          <div>
-            <label className="block mb-1 font-medium">Pay Date</label>
-            <input
-              type="date"
-              name="payDate"
-              value={formData.payDate}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          {/* Amount Paid */}
-          <div>
-            <label className="block mb-1 font-medium">Amount Paid</label>
-            <input
-              type="number"
-              name="amountPaid"
-              placeholder="Amount Paid"
-              value={formData.amountPaid}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          {/* Submit Button */}
-          <div className="col-span-1 md:col-span-2">
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-            >
-              Add Payment
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={loading || balance <= 0}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Adding...' : 'Add Payment'}
+          </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={loading}
+            className="flex-1 px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

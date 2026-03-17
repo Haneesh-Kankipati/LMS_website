@@ -12,13 +12,14 @@ import StudentList from "./components/Students/StudentList";
 import AddStudent from "./components/Students/AddStudent";
 import EditStudent from "./components/Students/EditStudent";
 import ViewStudent from "./components/Students/ViewStudent";
-import AddPayment from "./components/FeePayments/AddPayment";
 import ViewPayment from "./components/FeePayments/ViewPayment";
+import AddPayment from "./components/FeePayments/AddPayment";
 import Summary from "./components/StudentDashboard/Summary";
 import StudentProfile from "./components/StudentDashboard/StudentProfile";
 import StudentPayments from "./components/StudentDashboard/StudentPayments";
 import Settings from "./components/Dashboard/Settings";
 import Gallery from "./components/Dashboard/Gallery";
+import AddStructure from "./components/FeePayments/AddStructure";
 function App() {
 
   return (
@@ -39,8 +40,9 @@ function App() {
           <Route path="add-student" element={<AddStudent />} />
           <Route path="student/edit/:id" element={<EditStudent />} />
           <Route path="student/:id" element={<ViewStudent />} />
-          <Route path="feepayments" element={<AddPayment />} />
+          <Route path="feepayments" element={<AddStructure />} />
           <Route path="student/feepayment/:id" element={<ViewPayment />} />
+          <Route path="student/feepayment/:id/add/:structureId" element={<AddPayment />} />
           <Route path="settings" element={<Settings />} />
           <Route path="gallery" element={<Gallery />} />
         </Route>

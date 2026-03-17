@@ -1,90 +1,56 @@
-import React from 'react'
-import { useEffect } from 'react'
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { fetchPayments,columns,PaymentButtons, fetchStudentPayments, StudentPaymentButtons } from '../../utils/PaymentHelper'
-import DataTable from 'react-data-table-component'
-import { useAuth } from '../../context/authContext'
+import React, { useEffect, useState } from "react";
+import DataTable from "react-data-table-component";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+
+import {
+  fetchStructuresByStudent,
+  fetchPaymentsByStudent,
+  columns,
+  StudentStructureButtons,
+} from "../../utils/PaymentHelper";
+
+import { useAuth } from "../../context/authContext";
+
+pdfMake.vfs = pdfFonts.vfs;
 
 const StudentPayments = () => {
-    const {user}=useAuth()
-    const[payments,setPayments]=useState([])
-    const [rawPayments, setRawPayments] = useState([]);
-    const[paymentLoading,setPaymentLoading]=useState(false)
-    const [academicYears, setAcademicYears] = useState([]);
+  const { user } = useAuth();
 
-    const getAcademicYear = (date) => {
-      const d = new Date(date);
-      const year = d.getFullYear();
-      const month = d.getMonth(); // 0 = Jan
+  const [structures, setStructures] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-      // Academic Year: June → April
-      return month >= 5 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
-    };
-    const loadPayments=async()=>{
-      setPaymentLoading(true)
-      const loadingpayments=await fetchStudentPayments(user._id)
-      //console.log(loadingpayments)
-      setRawPayments(loadingpayments || []);
-      let sno=1
-      const data = loadingpayments.map((payment) => (
-                {
-                  _id:payment._id,
-                  sno: sno++,
-                  student: payment.student?.std_name || "", // <-- FIXED
-                  course: payment.student.std_course?.course_name || "",
-                  fee: payment.fee,
-                  discount: payment.discount,
-                  extra: payment.extra,
-                  total:payment.total,
-                  payDate:payment.payDate,
-                  amountPaid:payment.amountPaid,
-                  academicYear: getAcademicYear(payment.payDate),
-                  action: (<StudentPaymentButtons _id={payment._id} />)
-                }
-              ));
-                setPayments(data);
-      const years = [
-        ...new Set(data.map((p) => p.academicYear)),
-      ];
-      setAcademicYears(years);
+  /* ---------------- RECEIPT GENERATION (PER STRUCTURE) ---------------- */
+  const generateReceiptForStructure = async (structureId) => {
+    try {
+      const payments = await fetchPaymentsByStudent(user._id);
 
-      setPaymentLoading(false)
-    }
-    useEffect(()=>{
-      loadPayments()
-    },[])
-
-    const generateUnifiedReceipt = (year) => {
-      const yearPayments = rawPayments.filter(
-        (p) => getAcademicYear(p.payDate) === year
+      const paymentsForStructure = (payments || []).filter(
+        (p) =>
+          p.feeStructure &&
+          String(p.feeStructure._id) === String(structureId)
       );
-    
-      if (yearPayments.length === 0) {
-        alert("No payments found for this academic year");
+
+      if (paymentsForStructure.length === 0) {
+        alert("No payments found for this structure");
         return;
       }
-    
-      const firstPayment = yearPayments[0];
-    
-      const studentName = firstPayment.student?.std_name || "";
+
+      const structure =
+        structures.find((s) => s._id === structureId) || {};
+
+      const studentName = structure.student?.std_name || "";
       const courseName =
-        firstPayment.student?.std_course?.course_name || "";
-    
-      // Fee structure from FIRST payment
-      const fee = Number(firstPayment.fee) || 0;
-      const discount = Number(firstPayment.discount) || 0;
-      const extra = Number(firstPayment.extra) || 0;
-      const totalFee = Number(firstPayment.total) || 0;
-    
-      const totalPaid = yearPayments.reduce(
-        (sum, p) => sum + (Number(p.amountPaid) || 0),
-        0
-      );
-    
-      const pending = totalFee - totalPaid;
-    
-      /* ---------------- Payment History Table ---------------- */
+        structure.student?.std_course?.course_name || "";
+
+      const fee = Number(structure.fee) || 0;
+      const discount = Number(structure.discount) || 0;
+      const extra = Number(structure.extra) || 0;
+      const totalFee = Number(structure.total) || 0;
+
+      let totalPaid = 0;
+
       const paymentTableBody = [
         [
           { text: "S.No", bold: true },
@@ -92,46 +58,28 @@ const StudentPayments = () => {
           { text: "Amount Paid", bold: true },
         ],
       ];
-    
-      yearPayments.forEach((p, i) => {
+
+      paymentsForStructure.forEach((p, i) => {
         paymentTableBody.push([
           i + 1,
           new Date(p.payDate).toLocaleDateString(),
           `₹ ${p.amountPaid}`,
         ]);
+        totalPaid += Number(p.amountPaid) || 0;
       });
-    
-      /* ---------------- Fee Structure Table ---------------- */
-      const feeStructureTable = {
-        table: {
-          widths: ["*", "auto"],
-          body: [
-            [{ text: "Fee Structure", colSpan: 2, bold: true }, {}],
-            ["Base Fee", `₹ ${fee}`],
-            ["Discount", `₹ ${discount}`],
-            ["Extra Charges", `₹ ${extra}`],
-            [
-              { text: "Total Fee", bold: true },
-              { text: `₹ ${totalFee}`, bold: true },
-            ],
-          ],
-        },
-        layout: "lightHorizontalLines",
-        margin: [0, 10],
-      };
-    
+
+      const pending = totalFee - totalPaid;
+
       const docDefinition = {
         content: [
           { text: "WAVES", style: "header" },
-          { text: "PRESCHOOL | ACTIVITIES", style: "subHeader" },
-          { text: "Unified Fee Receipt", style: "subHeader" },
-    
+          { text: "Fee Receipt", style: "subHeader" },
+
           {
             columns: [
               [
                 { text: `Student: ${studentName}` },
                 { text: `Course: ${courseName}` },
-                { text: `Academic Year: ${year}` },
               ],
               [
                 {
@@ -142,13 +90,25 @@ const StudentPayments = () => {
             ],
             margin: [0, 10],
           },
-    
-          /* -------- Fee Structure Section -------- */
-          feeStructureTable,
-    
-          /* -------- Payment History Section -------- */
+
           {
-            text: "Payment History",
+            text: "Fee Structure",
+            style: "section",
+          },
+          {
+            table: {
+              widths: ["*", "auto"],
+              body: [
+                ["Base Fee", `₹ ${fee}`],
+                ["Discount", `₹ ${discount}`],
+                ["Extra", `₹ ${extra}`],
+                [{ text: "Total", bold: true }, `₹ ${totalFee}`],
+              ],
+            },
+          },
+
+          {
+            text: "\nPayment History",
             style: "section",
           },
           {
@@ -158,17 +118,19 @@ const StudentPayments = () => {
             },
             layout: "lightHorizontalLines",
           },
-    
-          { text: "\nSummary", style: "section" },
-    
+
+          {
+            text: "\nSummary",
+            style: "section",
+          },
           {
             table: {
               widths: ["*", "auto"],
               body: [
-                ["Total Fee (Academic Year)", `₹ ${totalFee}`],
+                ["Total Fee", `₹ ${totalFee}`],
                 ["Total Paid", `₹ ${totalPaid}`],
                 [
-                  { text: "Pending Amount", bold: true },
+                  { text: "Pending", bold: true },
                   {
                     text: `₹ ${pending}`,
                     bold: true,
@@ -177,28 +139,18 @@ const StudentPayments = () => {
                 ],
               ],
             },
-            layout: "lightHorizontalLines",
-          },
-    
-          {
-            text: "\nThis is a system generated receipt.",
-            italics: true,
-            alignment: "center",
-            fontSize: 9,
-            margin: [0, 20],
           },
         ],
-    
+
         styles: {
           header: {
-            fontSize: 20,
+            fontSize: 18,
             bold: true,
             alignment: "center",
           },
           subHeader: {
             fontSize: 14,
             alignment: "center",
-            margin: [0, 5],
           },
           section: {
             fontSize: 14,
@@ -207,38 +159,112 @@ const StudentPayments = () => {
           },
         },
       };
-    
+
       pdfMake.createPdf(docDefinition).open();
-    };
-  return (
-    <>
-      {paymentLoading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="p-4">
-          {/* Academic Year Buttons */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            {academicYears.map((year) => (
-              <button
-                key={year}
-                onClick={() => generateUnifiedReceipt(year)}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Generate Receipt ({year})
-              </button>
-            ))}
-          </div>
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate receipt");
+    }
+  };
 
-          {/* Payments Table */}
-          <DataTable
-            columns={columns}
-            data={payments}
-            pagination
+  /* ---------------- LOAD STRUCTURES ---------------- */
+  const loadStructures = async () => {
+    setLoading(true);
+    try {
+      const structs = await fetchStructuresByStudent(user._id);
+      setStructures(structs || []);
+
+      let sno = 1;
+
+      const tableRows = (structs || []).map((s) => ({
+        _id: s._id,
+        sno: sno++,
+        student: s.student?.std_name || "",
+        course: s.student?.std_course?.course_name || "",
+        fee: s.fee,
+        discount: s.discount,
+        extra: s.extra,
+        total: s.total,
+        action: (
+          <StudentStructureButtons
+            onDownload={() => generateReceiptForStructure(s._id)}
           />
-        </div>
-      )}
-    </>
-  );
-}
+        ),
+      }));
 
-export default StudentPayments
+      setRows(tableRows);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?._id) loadStructures();
+  }, [user]);
+
+  /* ---------------- EXPANDABLE PAYMENTS ---------------- */
+  const ExpandPayments = ({ data }) => {
+    const [payments, setPayments] = useState([]);
+
+    const load = async () => {
+      const all = await fetchPaymentsByStudent(user._id);
+      const filtered = (all || []).filter(
+        (p) =>
+          p.feeStructure &&
+          String(p.feeStructure._id) === String(data._id)
+      );
+      setPayments(filtered);
+    };
+
+    useEffect(() => {
+      load();
+    }, []);
+
+    return (
+      <div className="p-3 bg-gray-50">
+        {payments.length === 0 ? (
+          <div>No payments</div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Date</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p, i) => (
+                <tr key={p._id}>
+                  <td>{i + 1}</td>
+                  <td>
+                    {new Date(p.payDate).toLocaleDateString()}
+                  </td>
+                  <td>₹ {p.amountPaid}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  };
+
+  /* ---------------- UI ---------------- */
+  return (
+    <div className="p-4">
+      <DataTable
+        columns={columns}
+        data={rows}
+        progressPending={loading}
+        pagination
+        expandableRows
+        expandableRowsComponent={ExpandPayments}
+      />
+    </div>
+  );
+};
+
+export default StudentPayments;

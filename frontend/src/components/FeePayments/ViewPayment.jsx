@@ -1,270 +1,185 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
 import {
-  fetchPayments,
-  columns,
+  fetchStructuresByStudent,
+  deleteStructure,
+  fetchPaymentsByStudent,
+  deletePayment,
   PaymentButtons,
+  columns,
+  StructureButtons,
 } from "../../utils/PaymentHelper";
 
-//pdfMake.vfs = pdfFonts.pdfMake.vfs;
+pdfMake.vfs = pdfFonts.vfs;
 
 const ViewPayment = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [payments, setPayments] = useState([]);
-  const [rawPayments, setRawPayments] = useState([]);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [academicYears, setAcademicYears] = useState([]);
+  const [structures, setStructures] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [studentInfo, setStudentInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  /* ------------------ ACADEMIC YEAR CALC ------------------ */
-  const getAcademicYear = (date) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = d.getMonth(); // 0 = Jan
+  const generateUnifiedReceiptForStructure = async (structureId) => {
+    try {
+      const payments = await fetchPaymentsByStudent(id);
+      const paymentsForStructure = (payments || []).filter((p) => p.feeStructure && p.feeStructure._id === structureId);
+      if (paymentsForStructure.length === 0) {
+        alert('No payments for this structure');
+        return;
+      }
 
-    // Academic Year: June → April
-    return month >= 5 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+      const structure = structures.find((s) => s._id === structureId) || {};
+      const paymentTableBody = [[{ text: 'S.No', bold: true }, { text: 'Payment Date', bold: true }, { text: 'Amount Paid', bold: true }]];
+      let totalPaid = 0;
+      paymentsForStructure.forEach((p, i) => {
+        paymentTableBody.push([i + 1, new Date(p.payDate).toLocaleDateString(), `₹ ${p.amountPaid}`]);
+        totalPaid += Number(p.amountPaid) || 0;
+      });
+
+      const docDefinition = {
+        content: [
+          { text: 'WAVES - Fee Structure Receipt', style: 'header' },
+          { text: `Student: ${structure.student?.std_name || ''} | Year: ${structure.year || ''}`, margin: [0, 6] },
+          { table: { widths: ['auto', '*', 'auto'], body: paymentTableBody }, layout: 'lightHorizontalLines' },
+          { text: `\nTotal Paid: ₹ ${totalPaid}`, bold: true, margin: [0, 10] }
+        ],
+        styles: { header: { fontSize: 18, bold: true } }
+      };
+
+      pdfMake.createPdf(docDefinition).open();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate receipt');
+    }
   };
 
-  /* ------------------ LOAD PAYMENTS ------------------ */
-  const loadPayments = async () => {
-    setPaymentLoading(true);
+  const loadStructures = async () => {
+    setLoading(true);
+    try {
+      const structs = await fetchStructuresByStudent(id);
+      setStructures(structs || []);
 
-    const loadedPayments = await fetchPayments(id);
-    setRawPayments(loadedPayments || []);
+      // Set student info from first structure
+      if (structs && structs.length > 0) {
+        setStudentInfo({
+          name: structs[0].student?.std_name || "",
+          course: structs[0].student?.std_course?.course_name || ""
+        });
+      }
 
-    let sno = 1;
-    const tableData = loadedPayments.map((payment) => ({
-      _id: payment._id,
-      sno: sno++,
-      student: payment.student?.std_name || "",
-      course: payment.student?.std_course?.course_name || "",
-      fee: payment.fee,
-      discount: payment.discount,
-      extra: payment.extra,
-      total: payment.total,
-      payDate: new Date(payment.payDate).toLocaleDateString(),
-      amountPaid: payment.amountPaid,
-      academicYear: getAcademicYear(payment.payDate),
-      action: (
-        <PaymentButtons
-          std_id={id}
-          _id={payment._id}
-          onPaymentDelete={onPaymentDelete}
-        />
-      ),
-    }));
+      let sno = 1;
+      const tableRows = (structs || []).map((s) => ({
+        _id: s._id,
+        sno: sno++,
+        year: s.year || "",
+        fee: s.fee,
+        discount: s.discount,
+        extra: s.extra,
+        total: s.total,
+        action: (
+          <StructureButtons
+            onAdd={() => {
+              navigate(`/admin-dashboard/student/feepayment/${id}/add/${s._id}`);
+            }}
+            onDownload={() => generateUnifiedReceiptForStructure(s._id)}
+            onDelete={async () => {
+              const ok = window.confirm('Delete this fee structure and its payments?');
+              if (!ok) return;
+              await deleteStructure(s._id, () => loadStructures());
+            }}
+          />
+        ),
+      }));
 
-    setPayments(tableData);
-
-    // Extract unique academic years
-    const years = [
-      ...new Set(tableData.map((p) => p.academicYear)),
-    ];
-    setAcademicYears(years);
-
-    setPaymentLoading(false);
+      setRows(tableRows);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadPayments();
-  }, []);
+    if (id) loadStructures();
+  }, [id]);
 
-  const onPaymentDelete = () => {
-    loadPayments();
+  const ExpandPayments = ({ data }) => {
+    const [payments, setPayments] = useState([]);
+    const [loadingPayments, setLoadingPayments] = useState(false);
+
+    const load = async () => {
+      setLoadingPayments(true);
+      try {
+        const all = await fetchPaymentsByStudent(id);
+        const filtered = (all || []).filter((p) => p.feeStructure && String(p.feeStructure._id) === String(data._id));
+        setPayments(filtered);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingPayments(false);
+      }
+    };
+
+    useEffect(() => { load(); }, []);
+
+    return (
+      <div className="p-3 bg-gray-50">
+        {loadingPayments ? (
+          <div>Loading payments...</div>
+        ) : payments.length === 0 ? (
+          <div>No payments for this structure.</div>
+        ) : (
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="bg-white">
+                <th className="p-1">S.No</th>
+                <th className="p-1">Payment Date</th>
+                <th className="p-1">Amount Paid</th>
+                <th className="p-1">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p, i) => (
+                <tr key={p._id} className="border-t">
+                  <td className="p-1 align-top">{i + 1}</td>
+                  <td className="p-1 align-top">{new Date(p.payDate).toLocaleDateString()}</td>
+                  <td className="p-1 align-top">₹ {p.amountPaid}</td>
+                  <td className="p-1 align-top">
+                    <PaymentButtons std_id={id} _id={p._id} onPaymentDelete={async () => { await load(); }} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
   };
 
-  /* ------------------ PDF GENERATION ------------------ */
-  const generateUnifiedReceipt = (year) => {
-  const yearPayments = rawPayments.filter(
-    (p) => getAcademicYear(p.payDate) === year
-  );
-
-  if (yearPayments.length === 0) {
-    alert("No payments found for this academic year");
-    return;
-  }
-
-  const firstPayment = yearPayments[0];
-
-  const studentName = firstPayment.student?.std_name || "";
-  const courseName =
-    firstPayment.student?.std_course?.course_name || "";
-
-  // Fee structure from FIRST payment
-  const fee = Number(firstPayment.fee) || 0;
-  const discount = Number(firstPayment.discount) || 0;
-  const extra = Number(firstPayment.extra) || 0;
-  const totalFee = Number(firstPayment.total) || 0;
-
-  const totalPaid = yearPayments.reduce(
-    (sum, p) => sum + (Number(p.amountPaid) || 0),
-    0
-  );
-
-  const pending = totalFee - totalPaid;
-
-  /* ---------------- Payment History Table ---------------- */
-  const paymentTableBody = [
-    [
-      { text: "S.No", bold: true },
-      { text: "Payment Date", bold: true },
-      { text: "Amount Paid", bold: true },
-    ],
-  ];
-
-  yearPayments.forEach((p, i) => {
-    paymentTableBody.push([
-      i + 1,
-      new Date(p.payDate).toLocaleDateString(),
-      `₹ ${p.amountPaid}`,
-    ]);
-  });
-
-  /* ---------------- Fee Structure Table ---------------- */
-  const feeStructureTable = {
-    table: {
-      widths: ["*", "auto"],
-      body: [
-        [{ text: "Fee Structure", colSpan: 2, bold: true }, {}],
-        ["Base Fee", `₹ ${fee}`],
-        ["Discount", `₹ ${discount}`],
-        ["Extra Charges", `₹ ${extra}`],
-        [
-          { text: "Total Fee", bold: true },
-          { text: `₹ ${totalFee}`, bold: true },
-        ],
-      ],
-    },
-    layout: "lightHorizontalLines",
-    margin: [0, 10],
-  };
-
-  const docDefinition = {
-    content: [
-      { text: "WAVES", style: "header" },
-      { text: "PRESCHOOL | ACTIVITIES", style: "subHeader" },
-      { text: "Unified Fee Receipt", style: "subHeader" },
-
-      {
-        columns: [
-          [
-            { text: `Student: ${studentName}` },
-            { text: `Course: ${courseName}` },
-            { text: `Academic Year: ${year}` },
-          ],
-          [
-            {
-              text: `Date: ${new Date().toLocaleDateString()}`,
-              alignment: "right",
-            },
-          ],
-        ],
-        margin: [0, 10],
-      },
-
-      /* -------- Fee Structure Section -------- */
-      feeStructureTable,
-
-      /* -------- Payment History Section -------- */
-      {
-        text: "Payment History",
-        style: "section",
-      },
-      {
-        table: {
-          widths: ["auto", "*", "auto"],
-          body: paymentTableBody,
-        },
-        layout: "lightHorizontalLines",
-      },
-
-      { text: "\nSummary", style: "section" },
-
-      {
-        table: {
-          widths: ["*", "auto"],
-          body: [
-            ["Total Fee (Academic Year)", `₹ ${totalFee}`],
-            ["Total Paid", `₹ ${totalPaid}`],
-            [
-              { text: "Pending Amount", bold: true },
-              {
-                text: `₹ ${pending}`,
-                bold: true,
-                color: pending > 0 ? "red" : "green",
-              },
-            ],
-          ],
-        },
-        layout: "lightHorizontalLines",
-      },
-
-      {
-        text: "\nThis is a system generated receipt.",
-        italics: true,
-        alignment: "center",
-        fontSize: 9,
-        margin: [0, 20],
-      },
-    ],
-
-    styles: {
-      header: {
-        fontSize: 20,
-        bold: true,
-        alignment: "center",
-      },
-      subHeader: {
-        fontSize: 14,
-        alignment: "center",
-        margin: [0, 5],
-      },
-      section: {
-        fontSize: 14,
-        bold: true,
-        margin: [0, 10],
-      },
-    },
-  };
-
-  pdfMake.createPdf(docDefinition).open();
-};
-
-
-  /* ------------------ UI ------------------ */
   return (
-    <>
-      {paymentLoading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="p-4">
-          {/* Academic Year Buttons */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            {academicYears.map((year) => (
-              <button
-                key={year}
-                onClick={() => generateUnifiedReceipt(year)}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Generate Receipt ({year})
-              </button>
-            ))}
-          </div>
-
-          {/* Payments Table */}
-          <DataTable
-            columns={columns}
-            data={payments}
-            pagination
-          />
+    <div className="p-4">
+      {studentInfo && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Student Information</h2>
+          <p className="mb-2"><strong>Name:</strong> {studentInfo.name}</p>
+          <p><strong>Course:</strong> {studentInfo.course}</p>
         </div>
       )}
-    </>
+      <DataTable
+        columns={columns}
+        data={rows}
+        progressPending={loading}
+        pagination
+        expandableRows
+        expandableRowsComponent={ExpandPayments}
+      />
+    </div>
   );
 };
 
