@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 
 
 app.use(cors({
-    origin:"https://lms-website-delta.vercel.app/",
+    origin:"https://lms-website-delta.vercel.app",
     credentials:true
 }))
 app.use(express.json())
