@@ -111,7 +111,7 @@ const AddStructure = () => {
     };
     console.log(payload)
     try {
-      const response = await axios.post('http://localhost:3000/api/feestructure/add', payload, {
+      const response = await axios.post('/api/feestructure/add', payload, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

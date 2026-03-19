@@ -31,7 +31,7 @@ const EditStudent = () => {
                 formData.append(key, form[key]);
             }
             }
-            const response = await axios.put(`http://localhost:3000/api/student/${id}`, formData, {
+            const response = await axios.put(`/api/student/${id}`, formData, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }
@@ -50,7 +50,7 @@ const EditStudent = () => {
     const fetchStudent = async () => {
         setStudentLoading(true)
         try {
-            const response = await axios.get(`http://localhost:3000/api/student/${id}`, {
+            const response = await axios.get(`/api/student/${id}`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }

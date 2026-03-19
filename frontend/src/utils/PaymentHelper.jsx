@@ -95,7 +95,7 @@ export const columns = [
 
 export const fetchPayment=async(id)=>{
   try {
-    const response = await axios.get(`http://localhost:3000/api/feepayment/payment/${id}`, {
+    const response = await axios.get(`/api/feepayment/payment/${id}`, {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem('token')}`
       }
@@ -114,7 +114,7 @@ export const fetchPayment=async(id)=>{
 }
 export const deletePayment=async(id,onPaymentDelete)=>{
   try {
-    const response = await axios.delete(`http://localhost:3000/api/feepayment/payment/${id}`, {
+    const response = await axios.delete(`/api/feepayment/payment/${id}`, {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem('token')}`
       }
@@ -133,7 +133,7 @@ export const deletePayment=async(id,onPaymentDelete)=>{
 // New helpers for feeStructure oriented UI
 export const fetchStructuresByStudent = async (std_id) => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/feestructure/${std_id}`, {
+    const res = await axios.get(`/api/feestructure/${std_id}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
     console.log(res);
@@ -148,7 +148,7 @@ export const fetchStructuresByStudent = async (std_id) => {
 
 export const fetchPaymentsByStudent = async (studentId) => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/feepayment/${studentId}`, {
+    const res = await axios.get(`/api/feepayment/${studentId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
     return res.data.success ? res.data.payments || [] : [];
@@ -163,7 +163,7 @@ export const fetchPaymentsByStudent = async (studentId) => {
 export const addPaymentForStructure = async (structureId, payDate, amountPaid) => {
   try {
     const payload = { feeStructure: structureId, payDate, amountPaid };
-    const res = await axios.post('http://localhost:3000/api/feepayment/add', payload, {
+    const res = await axios.post('/api/feepayment/add', payload, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
     return res.data;
@@ -177,7 +177,7 @@ export const addPaymentForStructure = async (structureId, payDate, amountPaid) =
 
 export const deleteStructure = async (structureId, onDelete) => {
   try {
-    const res = await axios.delete(`http://localhost:3000/api/feestructure/${structureId}`, {
+    const res = await axios.delete(`/api/feestructure/${structureId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
     if (res.data.success && onDelete) onDelete();
@@ -314,8 +314,8 @@ export const generateUnifiedFeeReceipt = async (studentId, structureId) => {
     const pending = totalFee - totalPaid;
     
     const [logoDataUrl, signatureDataUrl] = await Promise.all([
-      fetchImageDataUrl("http://localhost:3000/receipt/waveslogo-removebg-preview.png"),
-      fetchImageDataUrl("http://localhost:3000/receipt/signature.jpeg"),
+      fetchImageDataUrl("/receipt/waveslogo-removebg-preview.png"),
+      fetchImageDataUrl("/receipt/signature.jpeg"),
     ]);
 
     const docDefinition = {

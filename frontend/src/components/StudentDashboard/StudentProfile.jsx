@@ -18,7 +18,7 @@ const StudentProfile = () => {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    return `http://localhost:3000/uploads/${imagePath}`;
+    return `/uploads/${imagePath}`;
   };
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const StudentProfile = () => {
       setStudentLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/student/${user._id}`,
+          `/api/student/${user._id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

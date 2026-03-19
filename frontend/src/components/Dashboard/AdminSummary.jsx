@@ -12,7 +12,7 @@ const AdminSummary = () => {
   const loadData=async()=>{
     setLoading(true)
     try {
-      const response = await axios.get('http://localhost:3000/api/dashboard',{
+      const response = await axios.get('/api/dashboard',{
         headers:{
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }

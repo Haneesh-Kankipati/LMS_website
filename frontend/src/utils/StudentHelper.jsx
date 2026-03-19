@@ -24,7 +24,7 @@ export const columns =[
         cell: (row) =>
         row.profileImage ? (
             <img
-                src={`http://localhost:3000/uploads/${row.profileImage}`}
+                src={`/uploads/${row.profileImage}`}
                 alt="profile"
                 style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
             />
@@ -63,7 +63,7 @@ export const columns =[
 export const fetchCourses = async ()=>{
       let courses
       try {
-        const response = await axios.get('http://localhost:3000/api/course',{
+        const response = await axios.get('/api/course',{
         headers:{
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
@@ -80,7 +80,7 @@ export const fetchCourses = async ()=>{
     };
 export const fetchStudentsByCourse = async (course_id) => {
   try {
-    const response = await axios.get('http://localhost:3000/api/student', {
+    const response = await axios.get('/api/student', {
       headers: {
         "Authorization": `Bearer ${localStorage.getItem('token')}`
       }
@@ -106,7 +106,7 @@ export const StudentButtons =({_id,onStudentDelete})=>{
         const confirm = window.confirm("Do you want to delete?")
         try {
             if(confirm){
-                const response = await axios.delete(`http://localhost:3000/api/student/${id}`,{
+                const response = await axios.delete(`/api/student/${id}`,{
                     headers:{
                   "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }

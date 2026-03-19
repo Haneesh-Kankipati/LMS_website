@@ -45,7 +45,7 @@ const Settings = () => {
         setLoading(true);
         setError("")
         setSuccess("")
-            const response = await axios.post('http://localhost:3000/api/settings/change-password',settings,{
+            const response = await axios.post('/api/settings/change-password',settings,{
                 headers:{
                     "Authorization" : `Bearer ${localStorage.getItem('token')}`
                 }

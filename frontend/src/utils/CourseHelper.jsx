@@ -24,7 +24,7 @@ export const CourseButtons =({_id, onCourseDelete})=>{
         const confirm = window.confirm("Do you want to delete?")
         try {
             if(confirm){
-                const response = await axios.delete(`http://localhost:3000/api/course/${id}`,{
+                const response = await axios.delete(`/api/course/${id}`,{
                     headers:{
                   "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }

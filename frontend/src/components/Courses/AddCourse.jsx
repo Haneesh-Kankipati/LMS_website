@@ -15,7 +15,7 @@ const AddCourse = () => {
     const handleSubmit= async (e)=>{
         e.preventDefault()
         try {
-            const response = await axios.post('http://localhost:3000/api/course/add',course,{
+            const response = await axios.post('/api/course/add',course,{
                 headers:{
                     "Authorization" : `Bearer ${localStorage.getItem('token')}`
                 }

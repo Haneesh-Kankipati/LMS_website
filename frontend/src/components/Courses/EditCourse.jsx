@@ -16,7 +16,7 @@ const EditCourse = () => {
     const handleSubmit=async(e)=>{
         e.preventDefault()
         try {
-            const response = await axios.put(`http://localhost:3000/api/course/${id}`,course,{
+            const response = await axios.put(`/api/course/${id}`,course,{
                 headers:{
                     "Authorization" : `Bearer ${localStorage.getItem('token')}`
                 }
@@ -34,7 +34,7 @@ const EditCourse = () => {
     const fetchCourses = async ()=>{
       setCourseLoading(true)
       try {
-        const response = await axios.get(`http://localhost:3000/api/course/${id}`,{
+        const response = await axios.get(`/api/course/${id}`,{
         headers:{
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }

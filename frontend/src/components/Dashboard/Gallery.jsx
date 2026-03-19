@@ -18,7 +18,7 @@ const Gallery = () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        "http://localhost:3000/api/gallery",
+        "/api/gallery",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -49,7 +49,7 @@ const Gallery = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/api/gallery/upload",
+        "/api/gallery/upload",
         formData,
         {
           headers: {
@@ -72,7 +72,7 @@ const Gallery = () => {
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/gallery/${filename}`,
+        `/api/gallery/${filename}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -91,7 +91,7 @@ const Gallery = () => {
   ========================= */
   const downloadImage = async (url) => {
     try {
-      const res = await axios.get(`http://localhost:3000${url}`, {
+      const res = await axios.get(url, {
         responseType: "blob",
       });
 
@@ -166,7 +166,7 @@ const Gallery = () => {
                   className="relative group rounded-lg overflow-hidden shadow bg-white"
                 >
                   <img
-                    src={`http://localhost:3000${img.url}`}
+                    src={img.url}
                     alt="Gallery"
                     className="w-full h-auto object-contain"
                     loading="lazy"

@@ -14,7 +14,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
+        "/api/auth/login",
         { email, password }
       );
       if (response.data.success) {
@@ -43,7 +43,7 @@ export default function Login() {
   return (
     <div className="relative flex flex-col items-center min-h-screen justify-center bg-gradient-to-b from-blue-600 from-50% to-blue-200 to-50%">
       <img
-        src="http://localhost:3000/receipt/waveslogo-removebg-preview.png"
+        src="/receipt/waveslogo-removebg-preview.png"
         alt="Waves Logo"
         className="absolute top-4 right-4 w-40 h-40 object-contain"
       />

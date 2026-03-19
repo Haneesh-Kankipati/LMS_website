@@ -41,7 +41,7 @@ const StudentPayments = () => {
     setLoading(true);
     try {
       const studentResponse = await axios.get(
-        `http://localhost:3000/api/student/user/${user._id}`,
+        `/api/student/user/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

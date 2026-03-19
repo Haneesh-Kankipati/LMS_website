@@ -16,7 +16,7 @@ const StudentList = () => {
   const fetchStudents = async ()=>{
       setStudentLoading(true)
       try {
-        const response = await axios.get('http://localhost:3000/api/student',{
+        const response = await axios.get('/api/student',{
         headers:{
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
