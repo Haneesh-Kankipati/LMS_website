@@ -62,7 +62,7 @@ export const getStucturesByStudent = async (req,res)=>{
         const structures = await FeeStructure.find({ student: student._id })
             .populate({
                 path: 'student',
-                select: 'std_name std_email std_phone std_id std_course',
+                select: 'std_name parent_name std_email std_phone std_id std_course',
                 populate: {
                     path: 'std_course',
                     select: 'course_name'

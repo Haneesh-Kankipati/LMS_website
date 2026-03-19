@@ -59,8 +59,14 @@ const StudentList = () => {
   setStudents(filtered);
   }
   const exportToExcel = () => {
-    // Remove "action" and "profileImage" fields (since they’re JSX or images)
-    const exportData = students.map(({ action, profileImage, ...rest }) => rest);
+    // Structure the data with proper column names and formatting
+    const exportData = students.map((student) => ({
+      "Student ID": student.std_id,
+      "Name": student.name,
+      "Parent Name": student.parent_name,
+      "Course": student.course_name,
+      "Date of Birth": new Date(student.std_dob).toLocaleDateString('en-GB'), // Format as DD/MM/YYYY
+    }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();

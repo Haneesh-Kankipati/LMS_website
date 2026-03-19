@@ -255,7 +255,9 @@ const getStudentByUserId = async (req, res) => {
 
     const student = await Student.findOne({ user_id: userId })
       .populate("user_id", { password: 0 })
-      .populate("std_course");
+      .populate("std_course")
+      .populate("std_id")
+      .populate("parent_name");
 
     if (!student) {
       return res

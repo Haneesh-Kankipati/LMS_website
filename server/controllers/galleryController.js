@@ -11,9 +11,29 @@ if (!fs.existsSync(galleryPath)) {
   fs.mkdirSync(galleryPath, { recursive: true });
 }
 
+// Ensure receipt folder exists
+const receiptPath = "public/receipt";
+if (!fs.existsSync(receiptPath)) {
+  fs.mkdirSync(receiptPath, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, galleryPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      uniqueName + path.extname(file.originalname)
+    );
+  },
+});
+
+const receiptStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, receiptPath);
   },
   filename: (req, file, cb) => {
     const uniqueName =
@@ -72,6 +92,32 @@ export const uploadImages = async (req, res) => {
   }
 };
 
+export const uploadReceiptImages = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "No images uploaded" });
+    }
+
+    const images = req.files.map((file) => ({
+      filename: file.filename,
+      path: `/receipt/${file.filename}`,
+    }));
+
+    return res.status(201).json({
+      success: true,
+      message: "Receipt images uploaded successfully",
+      images,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Receipt image upload failed",
+    });
+  }
+};
+
 export const getGalleryImages = async (req, res) => {
   try {
     const fs = await import("fs");
@@ -125,5 +171,13 @@ export const deleteGalleryImage = async (req, res) => {
   }
 };
 
+
+export const receiptUpload = multer({
+  storage: receiptStorage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
 
 export default upload;

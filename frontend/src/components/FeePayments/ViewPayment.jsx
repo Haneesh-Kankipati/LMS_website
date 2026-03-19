@@ -12,6 +12,7 @@ import {
   PaymentButtons,
   columns,
   StructureButtons,
+  generateUnifiedFeeReceipt,
 } from "../../utils/PaymentHelper";
 
 pdfMake.vfs = pdfFonts.vfs;
@@ -26,37 +27,8 @@ const ViewPayment = () => {
   const [loading, setLoading] = useState(false);
 
   const generateUnifiedReceiptForStructure = async (structureId) => {
-    try {
-      const payments = await fetchPaymentsByStudent(id);
-      const paymentsForStructure = (payments || []).filter((p) => p.feeStructure && p.feeStructure._id === structureId);
-      if (paymentsForStructure.length === 0) {
-        alert('No payments for this structure');
-        return;
-      }
-
-      const structure = structures.find((s) => s._id === structureId) || {};
-      const paymentTableBody = [[{ text: 'S.No', bold: true }, { text: 'Payment Date', bold: true }, { text: 'Amount Paid', bold: true }]];
-      let totalPaid = 0;
-      paymentsForStructure.forEach((p, i) => {
-        paymentTableBody.push([i + 1, new Date(p.payDate).toLocaleDateString(), `₹ ${p.amountPaid}`]);
-        totalPaid += Number(p.amountPaid) || 0;
-      });
-
-      const docDefinition = {
-        content: [
-          { text: 'WAVES - Fee Structure Receipt', style: 'header' },
-          { text: `Student: ${structure.student?.std_name || ''} | Year: ${structure.year || ''}`, margin: [0, 6] },
-          { table: { widths: ['auto', '*', 'auto'], body: paymentTableBody }, layout: 'lightHorizontalLines' },
-          { text: `\nTotal Paid: ₹ ${totalPaid}`, bold: true, margin: [0, 10] }
-        ],
-        styles: { header: { fontSize: 18, bold: true } }
-      };
-
-      pdfMake.createPdf(docDefinition).open();
-    } catch (err) {
-      console.error(err);
-      alert('Failed to generate receipt');
-    }
+    //console.log(id);
+    await generateUnifiedFeeReceipt(id, structureId);
   };
 
   const loadStructures = async () => {
@@ -178,6 +150,7 @@ const ViewPayment = () => {
         pagination
         expandableRows
         expandableRowsComponent={ExpandPayments}
+        expandableRowExpanded={(row) => true}
       />
     </div>
   );

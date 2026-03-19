@@ -10,7 +10,7 @@ export const getData = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalEarnings: { $sum: "$total" }
+          totalEarnings: { $sum: "$amountPaid" }
         }
       }
     ]);

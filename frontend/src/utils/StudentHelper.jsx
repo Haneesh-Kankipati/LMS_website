@@ -7,6 +7,10 @@ export const columns =[
         selector:(row)=>row.sno
     },
     {
+        name:"Std Id",
+        selector:(row)=>row.std_id
+    },
+    {
         name:"Name",
         selector:(row)=>row.name,
         sortable:true
