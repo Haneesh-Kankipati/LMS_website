@@ -22,7 +22,6 @@ lerna-debug.log*
 node_modules/
 frontend/node_modules/
 server/node_modules/
-server/public/
 
 # ===============================
 # BUILD OUTPUTS
