@@ -72,7 +72,7 @@ const Gallery = () => {
 
     try {
       await axios.delete(
-        `/api/gallery/${filename}`,
+        `/api/gallery/${encodeURIComponent(filename)}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -158,8 +158,6 @@ const Gallery = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {images.map((img, index) => {
-              const filename = img.url.split("/").pop();
-
               return (
                 <div
                   key={index}
@@ -184,7 +182,7 @@ const Gallery = () => {
                   {/* Admin Delete Button */}
                   {isAdmin && (
                     <button
-                      onClick={() => deleteImage(filename)}
+                      onClick={() => deleteImage(img.public_id)}
                       className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
                       title="Delete image"
                     >

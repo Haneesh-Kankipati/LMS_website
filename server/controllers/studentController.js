@@ -1,25 +1,25 @@
 import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../routes/cloudinary.js";
 import Student from "../models/Student.js";
 import User from "../models/User.js";
 import bcrypt from "bcrypt"
-import path from "path";
 import mongoose from "mongoose";
-import fs from "fs";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "lms_profiles",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
 
-const storage = multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,"public/uploads")
-    },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now()+path.extname(file.originalname))
-    }
-})
-
-const upload=multer({storage:storage})
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
 
 const addStudent= async(req,res)=>{
     let savedUser;
@@ -51,7 +51,7 @@ const addStudent= async(req,res)=>{
         email:ph_number,
         password:hashPassword,
         role:"student",
-        profileImage:req.file? req.file.filename:""
+        profileImage:req.file? req.file.path:""
     })
     const savedUser=await newUser.save()
 
@@ -168,8 +168,22 @@ const updateStudent = async (req, res) => {
             name: std_name,
             email: ph_number
         };
-        if (req.file && req.file.filename) {
-            userUpdate.profileImage = req.file.filename;
+        
+        // If a new image is uploaded, delete the old one from Cloudinary
+        if (req.file && req.file.path) {
+            // Get the existing user to find the old image
+            const existingUser = await User.findById(student.user_id);
+            if (existingUser?.profileImage) {
+                try {
+                    // Extract public_id from Cloudinary URL
+                    const urlParts = existingUser.profileImage.split('/');
+                    const publicId = `lms_profiles/${urlParts[urlParts.length - 1].split('.')[0]}`;
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (err) {
+                    console.error("Failed to delete old profile image from Cloudinary:", err);
+                }
+            }
+            userUpdate.profileImage = req.file.path;
         }
 
         // If password is provided, hash and update it
@@ -218,17 +232,15 @@ const deleteStudent = async (req, res) => {
     // Find associated user
     const user = await User.findById(student.user_id);
 
-    // Delete profile image if exists
+    // Delete profile image from Cloudinary if exists
     if (user?.profileImage) {
-      // uploaded files are stored in server/public/uploads and only filename is saved
-      const imagePath = path.join(__dirname, "..", "public", "uploads", user.profileImage);
-
-      if (fs.existsSync(imagePath)) {
-        try {
-          fs.unlinkSync(imagePath);
-        } catch (err) {
-          console.error("Failed to delete profile image:", err);
-        }
+      try {
+        // Extract public_id from Cloudinary URL
+        const urlParts = user.profileImage.split('/');
+        const publicId = `lms_profiles/${urlParts[urlParts.length - 1].split('.')[0]}`;
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error("Failed to delete profile image from Cloudinary:", err);
       }
     }
 

@@ -1,49 +1,6 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Ensure gallery folder exists
-const galleryPath = "public/gallery";
-if (!fs.existsSync(galleryPath)) {
-  fs.mkdirSync(galleryPath, { recursive: true });
-}
-
-// Ensure receipt folder exists
-const receiptPath = "public/receipt";
-if (!fs.existsSync(receiptPath)) {
-  fs.mkdirSync(receiptPath, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, galleryPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      uniqueName + path.extname(file.originalname)
-    );
-  },
-});
-
-const receiptStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, receiptPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      uniqueName + path.extname(file.originalname)
-    );
-  },
-});
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../routes/cloudinary.js";
 
 const fileFilter = (req, file, cb) => {
   if (
@@ -58,8 +15,26 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Gallery storage
+const galleryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "lms_gallery",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
+
+// Receipt storage
+const receiptStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "lms_receipt",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+  },
+});
+
 const upload = multer({
-  storage,
+  storage: galleryStorage,
   fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
@@ -76,7 +51,8 @@ export const uploadImages = async (req, res) => {
 
     const images = req.files.map((file) => ({
       filename: file.filename,
-      path: `/gallery/${file.filename}`,
+      url: file.path,
+      public_id: file.filename,
     }));
 
     return res.status(201).json({
@@ -85,6 +61,7 @@ export const uploadImages = async (req, res) => {
       images,
     });
   } catch (error) {
+    console.error("Upload error:", error);
     return res.status(500).json({
       success: false,
       error: "Image upload failed",
@@ -102,7 +79,8 @@ export const uploadReceiptImages = async (req, res) => {
 
     const images = req.files.map((file) => ({
       filename: file.filename,
-      path: `/receipt/${file.filename}`,
+      url: file.path,
+      public_id: file.filename,
     }));
 
     return res.status(201).json({
@@ -111,6 +89,7 @@ export const uploadReceiptImages = async (req, res) => {
       images,
     });
   } catch (error) {
+    console.error("Upload error:", error);
     return res.status(500).json({
       success: false,
       error: "Receipt image upload failed",
@@ -120,11 +99,17 @@ export const uploadReceiptImages = async (req, res) => {
 
 export const getGalleryImages = async (req, res) => {
   try {
-    const fs = await import("fs");
-    const files = fs.readdirSync("public/gallery");
+    // Fetch all images from Cloudinary lms_gallery folder
+    const result = await cloudinary.api.resources({
+      type: "upload",
+      prefix: "lms_gallery",
+      max_results: 500,
+    });
 
-    const images = files.map((file) => ({
-      url: `/gallery/${file}`,
+    const images = result.resources.map((resource) => ({
+      url: resource.secure_url,
+      public_id: resource.public_id,
+      filename: resource.public_id.split("/").pop(),
     }));
 
     return res.status(200).json({
@@ -132,6 +117,7 @@ export const getGalleryImages = async (req, res) => {
       images,
     });
   } catch (error) {
+    console.error("Error fetching gallery images:", error);
     return res.status(500).json({
       success: false,
       error: "Failed to fetch gallery images",
@@ -143,27 +129,18 @@ export const deleteGalleryImage = async (req, res) => {
   try {
     const { filename } = req.params;
 
-    const filePath = path.join(
-      __dirname,
-      "../public/gallery",
-      filename
-    );
+    // Decode the URL-encoded public_id
+    const publicId = decodeURIComponent(filename);
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({
-        success: false,
-        error: "Image not found",
-      });
-    }
-
-    fs.unlinkSync(filePath);
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(publicId);
 
     return res.status(200).json({
       success: true,
       message: "Image deleted successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Delete error:", error);
     return res.status(500).json({
       success: false,
       error: "Failed to delete image",

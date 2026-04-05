@@ -314,8 +314,8 @@ export const generateUnifiedFeeReceipt = async (studentId, structureId) => {
     const pending = totalFee - totalPaid;
     
     const [logoDataUrl, signatureDataUrl] = await Promise.all([
-      fetchImageDataUrl("/receipt/waveslogo-removebg-preview.png"),
-      fetchImageDataUrl("/receipt/signature.jpeg"),
+      fetchImageDataUrl("https://res.cloudinary.com/ds0j5tvzz/image/upload/v1775393448/waveslogo-removebg-preview_ky1exw.png"),
+      fetchImageDataUrl("https://res.cloudinary.com/ds0j5tvzz/image/upload/v1775393447/signature_bfnpym.jpg"),
     ]);
 
     const docDefinition = {

@@ -43,7 +43,7 @@ export default function Login() {
   return (
     <div className="relative flex flex-col items-center min-h-screen justify-center bg-gradient-to-b from-blue-600 from-50% to-blue-200 to-50%">
       <img
-        src="/receipt/waveslogo-removebg-preview.png"
+        src="https://res.cloudinary.com/ds0j5tvzz/image/upload/v1775393448/waveslogo-removebg-preview_ky1exw.png"
         alt="Waves Logo"
         className="absolute top-4 right-4 w-40 h-40 object-contain"
       />

@@ -18,7 +18,8 @@ const StudentProfile = () => {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    return `/uploads/${imagePath}`;
+    // imagePath is already a full Cloudinary URL
+    return imagePath;
   };
 
   useEffect(() => {

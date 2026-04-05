@@ -24,7 +24,7 @@ export const columns =[
         cell: (row) =>
         row.profileImage ? (
             <img
-                src={`/uploads/${row.profileImage}`}
+                src={row.profileImage}
                 alt="profile"
                 style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
             />

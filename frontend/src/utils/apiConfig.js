@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// Use environment variable if provided, otherwise fallback to your deployed backend.
+// Use environment variable if provided, otherwise fallback to localhost:3000 for testing.
 export const API_BASE = import.meta.env.VITE_API_BASE || "https://lms-website-49is.onrender.com";
 
 // Set default base URL for all axios requests.
