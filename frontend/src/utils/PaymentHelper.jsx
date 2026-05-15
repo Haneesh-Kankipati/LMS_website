@@ -362,7 +362,6 @@ export const generateUnifiedFeeReceipt = async (studentId, structureId) => {
             widths: ["*", "auto"],
             body: [
               ["Base Fee", `₹ ${fee}`],
-              ["Discount", `₹ ${discount}`],
               ["Kit", `₹ ${extra}`],
               [{ text: "Total", bold: true }, `₹ ${totalFee}`],
             ],
