@@ -67,12 +67,6 @@ export const columns = [
     width: "100px"
   },
   {
-    name: "Discount",
-    selector: row => row.discount,
-    sortable: true,
-    width: "100px"
-  },
-  {
     name: "Kit",
     selector: row => row.extra,
     sortable: true,

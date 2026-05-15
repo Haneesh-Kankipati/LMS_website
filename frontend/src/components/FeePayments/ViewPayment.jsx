@@ -51,7 +51,6 @@ const ViewPayment = () => {
         sno: sno++,
         year: s.year || "",
         fee: s.fee,
-        discount: s.discount,
         extra: s.extra,
         total: s.total,
         action: (
