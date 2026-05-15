@@ -13,7 +13,7 @@ const AddStructure = () => {
     student: '',
     year: '',
     fee: '',
-    discount: '',
+    discount: 0,
     extra: '',
     total: ''
   });
@@ -40,10 +40,10 @@ const AddStructure = () => {
     setFormData((prev) => {
       let updated = { ...prev, [name]: value };
 
-      // Auto-calculate total when fee, discount, or extra changes
-      if (["fee", "discount", "extra"].includes(name)) {
+      // Auto-calculate total when fee or extra changes
+      if (["fee", "extra"].includes(name)) {
         const fee = parseFloat(updated.fee) || 0;
-        const discount = parseFloat(updated.discount) || 0;
+        const discount = 0;
         const extra = parseFloat(updated.extra) || 0;
         updated.total = fee - discount + extra;
       }
@@ -75,16 +75,6 @@ const AddStructure = () => {
 
     if (formData.fee === '' || Number(formData.fee) < 0) {
       setError('Please enter a valid fee amount');
-      return false;
-    }
-
-    if (formData.discount === '' || Number(formData.discount) < 0) {
-      setError('Please enter a valid discount amount');
-      return false;
-    }
-
-    if (Number(formData.discount) > Number(formData.fee) + Number(formData.extra || 0)) {
-      setError('Discount cannot be greater than fee + extra');
       return false;
     }
 
@@ -169,12 +159,6 @@ const AddStructure = () => {
           <div>
             <label className="block mb-1 font-medium">Fee</label>
             <input type="number" name="fee" placeholder="Enter Fee" value={formData.fee} onChange={handleChange} className="w-full border rounded-lg p-2" />
-          </div>
-
-          {/* Discount */}
-          <div>
-            <label className="block mb-1 font-medium">Discount</label>
-            <input type="number" name="discount" placeholder="Enter Discount" value={formData.discount} onChange={handleChange} className="w-full border rounded-lg p-2" />
           </div>
 
           {/* Extra */}
