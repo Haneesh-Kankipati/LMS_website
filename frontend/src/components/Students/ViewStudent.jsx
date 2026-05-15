@@ -17,7 +17,6 @@ const ViewStudent = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    //console.log(imagePath)
     if (!imagePath) return null;
     
     // imagePath is already a full Cloudinary URL

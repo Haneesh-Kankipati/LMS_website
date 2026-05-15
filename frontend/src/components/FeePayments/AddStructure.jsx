@@ -109,7 +109,6 @@ const AddStructure = () => {
       extra: Number(formData.extra) || 0,
       total: Number(formData.total) || (Number(formData.fee) - Number(formData.discount || 0) + Number(formData.extra || 0))
     };
-    console.log(payload)
     try {
       const response = await axios.post('/api/feestructure/add', payload, {
         headers: {

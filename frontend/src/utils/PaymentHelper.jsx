@@ -130,7 +130,6 @@ export const fetchStructuresByStudent = async (std_id) => {
     const res = await axios.get(`/api/feestructure/${std_id}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
-    console.log(res);
     return res.data.success ? res.data.structures || res.data.structures || res.data.structures : [];
   } catch (error) {
     if (error.response && error.response.data && !error.response.data.success) {

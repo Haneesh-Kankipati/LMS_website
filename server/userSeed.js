@@ -9,7 +9,7 @@ dotenv.config();
 const userRegister = async () => {
   try {
     await connectToDatabase();
-    console.log("✅ Connected to database");
+    //console.log("✅ Connected to database");
 
     const hashPassword = await bcrypt.hash("admin", 10);
 
@@ -23,9 +23,9 @@ const userRegister = async () => {
         role: "admin",
       });
 
-      console.log("✅ Admin user created");
+      //console.log("✅ Admin user created");
     } else {
-      console.log("⚠️ Admin already exists");
+      //console.log("⚠️ Admin already exists");
     }
 
     // ✅ CLOSE CONNECTION
@@ -33,7 +33,7 @@ const userRegister = async () => {
 
     process.exit(0);
   } catch (error) {
-    console.log("❌ Error:", error);
+    //console.log("❌ Error:", error);
 
     await mongoose.connection.close();
     process.exit(1);

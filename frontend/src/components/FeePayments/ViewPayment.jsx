@@ -27,7 +27,6 @@ const ViewPayment = () => {
   const [loading, setLoading] = useState(false);
 
   const generateUnifiedReceiptForStructure = async (structureId) => {
-    //console.log(id);
     await generateUnifiedFeeReceipt(id, structureId);
   };
 

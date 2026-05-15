@@ -35,7 +35,6 @@ const authContext = ({children}) => {
     },[])
     const login =(userData)=>{
       setUser(userData)
-      console.log("USER: ",{userData})
     }
     const logout=()=>{
       setUser(null)
