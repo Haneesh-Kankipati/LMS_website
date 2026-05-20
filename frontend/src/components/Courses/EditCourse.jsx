@@ -6,6 +6,7 @@ const EditCourse = () => {
     const {id}= useParams()
     const[course, setCourse]= useState([])
     const[courseLoading, setCourseLoading]= useState(false)
+    const[isSubmitting, setIsSubmitting]= useState(false)
 
     const navigate = useNavigate()
 
@@ -15,6 +16,7 @@ const EditCourse = () => {
     }
     const handleSubmit=async(e)=>{
         e.preventDefault()
+        setIsSubmitting(true)
         try {
             const response = await axios.put(`/api/course/${id}`,course,{
                 headers:{
@@ -27,7 +29,8 @@ const EditCourse = () => {
         } catch (error) {
             if(error.response && !error.response.data.success){
                 alert(error.response.data.error)
-            } 
+            }
+            setIsSubmitting(false)
         }
     }
     useEffect(()=>{
@@ -95,9 +98,10 @@ const EditCourse = () => {
 
         <button
           type="submit"
-          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+          disabled={isSubmitting}
+          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Edit Course
+          {isSubmitting ? "Updating..." : "Edit Course"}
         </button>
       </form>
     </div>

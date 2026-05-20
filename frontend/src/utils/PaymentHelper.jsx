@@ -1,6 +1,7 @@
 import axios from "axios";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import React from "react";
 
 pdfMake.vfs = pdfFonts.vfs;
 
@@ -203,6 +204,17 @@ export const PaymentButtons = ({std_id, _id,onPaymentDelete }) => {
   );
 };
 export const StructureButtons = ({ onAdd, onDownload, onDelete }) => {
+  const [downloadLoading, setDownloadLoading] = React.useState(false);
+  
+  const handleDownload = async () => {
+    setDownloadLoading(true);
+    try {
+      if (onDownload) await onDownload();
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+  
   return (
     <div className="flex space-x-3">
       <button
@@ -212,10 +224,11 @@ export const StructureButtons = ({ onAdd, onDownload, onDelete }) => {
         Add Payment
       </button>
       <button
-        className="px-3 py-1 bg-green-600 text-white rounded-full"
-        onClick={() => { if (onDownload) onDownload(); }}
+        disabled={downloadLoading}
+        className="px-3 py-1 bg-green-600 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={handleDownload}
       >
-        Download
+        {downloadLoading ? "Downloading..." : "Download"}
       </button>
       <button
         className="px-3 py-1 bg-red-600 text-white rounded-full"
@@ -227,13 +240,25 @@ export const StructureButtons = ({ onAdd, onDownload, onDelete }) => {
   );
 };
 export const StudentStructureButtons=({ onDownload })=>{
+  const [downloadLoading, setDownloadLoading] = React.useState(false);
+  
+  const handleDownload = async () => {
+    setDownloadLoading(true);
+    try {
+      if (onDownload) await onDownload();
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+  
   return(
     <div className="flex space-x-3"> 
       <button 
-        className="px-3 py-1 bg-green-600 text-white rounded-full"
-        onClick={() => { if (onDownload) onDownload(); }}
+        disabled={downloadLoading}
+        className="px-3 py-1 bg-green-600 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={handleDownload}
       >
-        Download
+        {downloadLoading ? "Downloading..." : "Download"}
       </button> 
     </div>
   );

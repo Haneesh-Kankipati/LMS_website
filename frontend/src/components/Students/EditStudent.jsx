@@ -17,11 +17,13 @@ const EditStudent = () => {
         image: null
     })
     const [studentLoading, setStudentLoading] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [courses, setCourses] = useState([])
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setIsSubmitting(true)
         try {
             const formData = new FormData();
 
@@ -43,6 +45,7 @@ const EditStudent = () => {
             if (error.response && !error.response.data.success) {
                 alert(error.response.data.error)
             }
+            setIsSubmitting(false)
         }
     }
 
@@ -217,9 +220,10 @@ const EditStudent = () => {
                         </div>
                         <button
                             type="submit"
-                            className="w-full bg-blue-600 text-white py-3 rounded text-lg hover:bg-blue-700"
+                            disabled={isSubmitting}
+                            className="w-full bg-blue-600 text-white py-3 rounded text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Update Student
+                            {isSubmitting ? "Updating..." : "Update Student"}
                         </button>
                     </div>
                 </form>

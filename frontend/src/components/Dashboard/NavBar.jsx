@@ -1,12 +1,14 @@
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../context/authContext'
 import { useNavigate } from 'react-router-dom'
 
 const NavBar = () => {
   const { user, logout } = useAuth()
   const navigate=useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
   const handleSubmit=()=>{
+    setIsLoading(true)
     logout()
     navigate("/login") 
   }
@@ -16,9 +18,10 @@ const NavBar = () => {
 
       <button
         onClick={handleSubmit}
-        className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-1 rounded-md text-sm"
+        disabled={isLoading}
+        className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-1 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Logout
+        {isLoading ? "Logging out..." : "Logout"}
       </button>
     </div>
   )

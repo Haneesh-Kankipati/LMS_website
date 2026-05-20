@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 const AddStudent = () => {
   const navigate = useNavigate()
   const [error,setError]=useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const [form, setForm] = useState({
     std_name: "",
     parent_name: "",
@@ -69,6 +70,7 @@ const AddStudent = () => {
 
     if (!validateForm()) return;
 
+    setIsLoading(true)
     const formDataObj = new FormData()
     formDataObj.append("std_name", form.std_name)
     formDataObj.append("parent_name", form.parent_name)
@@ -97,6 +99,7 @@ const AddStudent = () => {
       } else {
         alert(error.message)
       }
+      setIsLoading(false)
     }
   }
 
@@ -236,9 +239,10 @@ const AddStudent = () => {
       </div>
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-3 rounded text-lg hover:bg-blue-700"
+        disabled={isLoading}
+        className="w-full bg-blue-600 text-white py-3 rounded text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Add Student
+        {isLoading ? "Adding..." : "Add Student"}
       </button>
     </div>
   </form>

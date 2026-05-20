@@ -8,6 +8,7 @@ const AddStructure = () => {
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     course: '',
     student: '',
@@ -91,6 +92,7 @@ const AddStructure = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsLoading(true);
     const payload = {
       student: formData.student,
       year: formData.year,
@@ -115,6 +117,7 @@ const AddStructure = () => {
       } else {
         setError('Server error');
       }
+      setIsLoading(false);
     }
   };
 
@@ -175,7 +178,7 @@ const AddStructure = () => {
 
           {/* Submit Button */}
           <div className="col-span-1 md:col-span-2">
-            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Add Structure</button>
+            <button type="submit" disabled={isLoading} className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{isLoading ? "Adding..." : "Add Structure"}</button>
           </div>
         </form>
       </div>

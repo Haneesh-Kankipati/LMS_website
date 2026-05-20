@@ -7,6 +7,7 @@ const AddCourse = () => {
         course_name:'',
         description:''
     })
+    const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
     const handleChange= (e)=>{
         const{name,value}=e.target;
@@ -14,6 +15,7 @@ const AddCourse = () => {
     }
     const handleSubmit= async (e)=>{
         e.preventDefault()
+        setIsLoading(true)
         try {
             const response = await axios.post('/api/course/add',course,{
                 headers:{
@@ -26,7 +28,8 @@ const AddCourse = () => {
         } catch (error) {
             if(error.response && !error.response.data.success){
                 alert(error.response.data.error)
-            } 
+            }
+            setIsLoading(false)
         }
     }
   return (
@@ -68,9 +71,10 @@ const AddCourse = () => {
 
         <button
           type="submit"
-          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+          disabled={isLoading}
+          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Add Course
+          {isLoading ? "Adding..." : "Add Course"}
         </button>
       </form>
     </div>
