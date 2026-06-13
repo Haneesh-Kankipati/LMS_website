@@ -12,6 +12,7 @@ const StudentList = () => {
     const [studentLoading, setStudentLoading] = useState(false);
     const [allStudents, setAllStudents] = useState([]);
     const [searchText,setSearchText]=useState("");
+    const [popup, setPopup] = useState(null);
 
   const fetchStudents = async ()=>{
       setStudentLoading(true)
@@ -40,7 +41,10 @@ const StudentList = () => {
         } 
       } catch (error){
         if(error.response && !error.response.data.success){
-                alert(error.response.data.error)
+                setPopup({
+                  type: 'error',
+                  message: error.response.data.error
+                })
             } 
       }finally{
         setStudentLoading(false)
@@ -79,8 +83,125 @@ const StudentList = () => {
     setStudents(prev => prev.filter(student => student.std_id !== id));
     fetchStudents()
   };
+
+  const importFromExcel = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      if (rows.length === 0) {
+        setPopup({
+          type: 'error',
+          message: 'Excel file is empty'
+        });
+        return;
+      }
+
+      // Parse the data starting from row 1 (index 1, skipping header if present)
+      const studentsToImport = [];
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row[0]) continue; // Skip empty rows
+
+        studentsToImport.push({
+          std_id: row[0]?.toString().trim(),
+          course: row[1]?.toString().trim(),
+          name: row[2]?.toString().trim(),
+          dob: row[3],
+          gender: row[4]?.toString().trim(),
+          parent_name: row[5]?.toString().trim(),
+          phone_number: row[6]?.toString().trim(),
+        });
+      }
+
+      if (studentsToImport.length === 0) {
+        setPopup({
+          type: 'error',
+          message: 'No valid student data found in Excel file'
+        });
+        return;
+      }
+
+      // Send to backend
+      const response = await axios.post('/api/student/import', 
+        { students: studentsToImport },
+        {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setPopup({
+          type: 'success',
+          message: `Import successful!\nAdded: ${response.data.added}\nSkipped: ${response.data.skipped}`
+        });
+        fetchStudents();
+      } else {
+        setPopup({
+          type: 'error',
+          message: `Import failed: ${response.data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      setPopup({
+        type: 'error',
+        message: `Error importing file: ${error.message}`
+      });
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
+
   return (
     <>
+      {popup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4 ${
+            popup.type === 'success' ? 'border-l-4 border-green-600' : 'border-l-4 border-red-600'
+          }`}>
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                popup.type === 'success' ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                {popup.type === 'success' ? (
+                  <span className="text-green-600 text-xl">✓</span>
+                ) : (
+                  <span className="text-red-600 text-xl">✕</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className={`text-lg font-semibold mb-2 ${
+                  popup.type === 'success' ? 'text-green-800' : 'text-red-800'
+                }`}>
+                  {popup.type === 'success' ? 'Success' : 'Error'}
+                </h3>
+                <p className="text-gray-700 whitespace-pre-wrap">{popup.message}</p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setPopup(null)}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  popup.type === 'success'
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {studentLoading ? (
         <div>Loading...</div>
       ) : (
@@ -104,6 +225,16 @@ const StudentList = () => {
               >
                 Export to Excel
               </button>
+
+              <label className="px-4 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer">
+                Import from Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={importFromExcel}
+                  className="hidden"
+                />
+              </label>
 
               <Link
                 to="/admin-dashboard/add-student"

@@ -3,6 +3,7 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../routes/cloudinary.js";
 import Student from "../models/Student.js";
 import User from "../models/User.js";
+import Course from "../models/Course.js";
 import bcrypt from "bcrypt"
 import mongoose from "mongoose";
 
@@ -293,4 +294,128 @@ const getStudentByUserId = async (req, res) => {
   }
 };
 
-export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent,getStudentByUserId}
+const importStudentsFromExcel = async (req, res) => {
+  try {
+    const { students: studentsData } = req.body;
+
+    if (!Array.isArray(studentsData) || studentsData.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "No student data provided" 
+      });
+    }
+
+    let added = 0;
+    let skipped = 0;
+    const errors = [];
+
+    for (const studentData of studentsData) {
+      try {
+        const {
+          std_id,
+          course,
+          name,
+          dob,
+          gender,
+          parent_name,
+          phone_number
+        } = studentData;
+
+        // Validate required fields
+        if (!std_id || !name || !phone_number) {
+          skipped++;
+          errors.push(`Row skipped: Missing required fields (std_id, name, or phone_number)`);
+          continue;
+        }
+
+        // Check if student ID already exists
+        const existingStudent = await Student.findOne({ std_id });
+        if (existingStudent) {
+          skipped++;
+          errors.push(`Student ID ${std_id} already exists`);
+          continue;
+        }
+
+        // Check if phone number (used as email) already exists
+        const existingUser = await User.findOne({ email: phone_number });
+        if (existingUser) {
+          skipped++;
+          errors.push(`Phone number ${phone_number} already exists`);
+          continue;
+        }
+
+        // Find course by name
+        let courseId = null;
+        if (course && course.trim()) {
+          const courseObj = await Course.findOne({ course_name: course });
+          if (courseObj) {
+            courseId = courseObj._id;
+          }
+        }
+
+        // Hash the password (phone number)
+        const hashPassword = await bcrypt.hash(phone_number, 10);
+
+        // Create new user
+        const newUser = new User({
+          name,
+          email: phone_number,
+          password: hashPassword,
+          role: "student",
+          profileImage: ""
+        });
+
+        const savedUser = await newUser.save();
+
+        // Parse date of birth
+        let parsedDob = null;
+        if (dob) {
+          // Handle different date formats
+          if (typeof dob === 'number') {
+            // Excel date format (serial number)
+            const date = new Date((dob - 25569) * 86400 * 1000);
+            parsedDob = date;
+          } else if (typeof dob === 'string') {
+            parsedDob = new Date(dob);
+          }
+        }
+
+        // Create new student
+        const newStudent = new Student({
+          user_id: savedUser._id,
+          std_id,
+          std_name: name,
+          parent_name: parent_name || "",
+          std_dob: parsedDob,
+          std_course: courseId,
+          std_gender: gender || ""
+        });
+
+        await newStudent.save();
+        added++;
+
+      } catch (error) {
+        skipped++;
+        errors.push(`Row error: ${error.message}`);
+        console.error("Import error for student:", error);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Import completed. Added: ${added}, Skipped: ${skipped}`,
+      added,
+      skipped,
+      errors: errors.slice(0, 10) // Return first 10 errors
+    });
+
+  } catch (error) {
+    console.error("IMPORT STUDENTS ERROR 🔥", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+export {addStudent,upload,getStudents,getStudent,updateStudent,deleteStudent,getStudentByUserId,importStudentsFromExcel}
