@@ -1,9 +1,10 @@
 import express from "express"
 import authMiddleware from "../middleware/authMiddleware.js"
-import { addPayment ,getPayment,getPaymentsByStudent,deletePayment} from "../controllers/paymentController.js"
+import { addPayment, getPayment, getPaymentsByStudent, getPaymentsByCourse, deletePayment } from "../controllers/paymentController.js"
 
 const router = express.Router()
 router.get('/payment/:paymentId', authMiddleware, getPayment);
+router.get('/course/:courseId', authMiddleware, getPaymentsByCourse);
 router.delete('/payment/:paymentId', authMiddleware, deletePayment);
 
 router.get('/:studentId', authMiddleware, getPaymentsByStudent);

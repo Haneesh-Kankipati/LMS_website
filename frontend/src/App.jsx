@@ -14,6 +14,7 @@ import EditStudent from "./components/Students/EditStudent";
 import ViewStudent from "./components/Students/ViewStudent";
 import ViewPayment from "./components/FeePayments/ViewPayment";
 import AddPayment from "./components/FeePayments/AddPayment";
+import CoursePaymentList from "./components/FeePayments/CoursePaymentList";
 import Summary from "./components/StudentDashboard/Summary";
 import StudentProfile from "./components/StudentDashboard/StudentProfile";
 import StudentPayments from "./components/StudentDashboard/StudentPayments";
@@ -41,6 +42,8 @@ function App() {
           <Route path="student/edit/:id" element={<EditStudent />} />
           <Route path="student/:id" element={<ViewStudent />} />
           <Route path="feepayments" element={<AddStructure />} />
+          <Route path="list-payments" element={<CoursePaymentList />} />
+          <Route path="list-payments/:courseId" element={<CoursePaymentList />} />
           <Route path="student/feepayment/:id" element={<ViewPayment />} />
           <Route path="student/feepayment/:id/add/:structureId" element={<AddPayment />} />
           <Route path="settings" element={<Settings />} />
